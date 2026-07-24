@@ -1,0 +1,1336 @@
+<title>MediClock</title>
+<style>
+  :root{
+    --bg:#F1EEE7;
+    --surface:#FFFFFF;
+    --surface-2:#E8E3D8;
+    --ink:#2A2A24;
+    --ink-dim:#6B6558;
+    --brand:#1F4741;
+    --brand-soft:#DCEAE5;
+    --accent:#C8892E;
+    --accent-soft:#F3E3C8;
+    --danger:#B3432B;
+    --danger-soft:#F5DED6;
+    --success:#3F7A54;
+    --success-soft:#DDEEE1;
+    --skip:#8A8071;
+    --skip-soft:#EAE5D9;
+    --border:#DCD5C5;
+    --shadow: 0 1px 2px rgba(42,42,36,.06), 0 4px 16px rgba(42,42,36,.06);
+    --serif: "Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+    --sans: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#12211D; --surface:#1B2D27; --surface-2:#223830;
+      --ink:#EFEAE0; --ink-dim:#A9A192;
+      --brand:#6FBFA8; --brand-soft:#213B34;
+      --accent:#E3A857; --accent-soft:#3A2E1B;
+      --danger:#E2735A; --danger-soft:#3A211C;
+      --success:#6FBF87; --success-soft:#1E3323;
+      --skip:#B0A692; --skip-soft:#2B2A22;
+      --border:#2E453C;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12211D; --surface:#1B2D27; --surface-2:#223830;
+    --ink:#EFEAE0; --ink-dim:#A9A192;
+    --brand:#6FBFA8; --brand-soft:#213B34;
+    --accent:#E3A857; --accent-soft:#3A2E1B;
+    --danger:#E2735A; --danger-soft:#3A211C;
+    --success:#6FBF87; --success-soft:#1E3323;
+    --skip:#B0A692; --skip-soft:#2B2A22;
+    --border:#2E453C;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"]{
+    --bg:#F1EEE7; --surface:#FFFFFF; --surface-2:#E8E3D8;
+    --ink:#2A2A24; --ink-dim:#6B6558;
+    --brand:#1F4741; --brand-soft:#DCEAE5;
+    --accent:#C8892E; --accent-soft:#F3E3C8;
+    --danger:#B3432B; --danger-soft:#F5DED6;
+    --success:#3F7A54; --success-soft:#DDEEE1;
+    --skip:#8A8071; --skip-soft:#EAE5D9;
+    --border:#DCD5C5;
+    --shadow: 0 1px 2px rgba(42,42,36,.06), 0 4px 16px rgba(42,42,36,.06);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px; line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:var(--serif); font-weight:600; text-wrap:balance; margin:0;}
+  button{font-family:var(--sans);}
+  .tabular{font-variant-numeric:tabular-nums;}
+  a{color:var(--brand);}
+
+  .app{max-width:760px;margin:0 auto;padding:0 16px 64px;}
+
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:var(--bg);
+    padding:18px 0 10px;
+    border-bottom:1px solid var(--border);
+  }
+  header.top .row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  header.top h1{font-size:26px;color:var(--brand);}
+  header.top .date{font-size:13px;color:var(--ink-dim);text-transform:capitalize;}
+  header.top .row-right{display:flex; align-items:center; gap:10px;}
+  #muteToggleBtn{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:999px;
+    width:40px; height:40px; font-size:18px; cursor:pointer; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #muteToggleBtn.muted{background:var(--danger-soft); border-color:var(--danger);}
+  .banner .mute-row{margin-top:10px;}
+  .banner .mute-row button{
+    background:var(--danger); color:#fff; border:none; border-radius:10px;
+    padding:10px 16px; font-size:14px; font-weight:700; cursor:pointer;
+  }
+  header.top .patient{font-size:13px;color:var(--ink-dim);margin-top:2px;}
+  header.top .patient strong{color:var(--ink);}
+
+  nav.tabs{display:flex;gap:6px;margin-top:14px;overflow-x:auto;padding-bottom:2px;}
+  nav.tabs button{
+    flex:0 0 auto;
+    background:transparent;border:1px solid var(--border);
+    color:var(--ink-dim); border-radius:999px;
+    padding:9px 16px; font-size:14px; font-weight:600;
+    cursor:pointer;
+  }
+  nav.tabs button.active{background:var(--brand);border-color:var(--brand);color:var(--surface);}
+  body.mode-simple .pro-only{display:none !important;}
+  body.mode-simple nav.tabs button[data-tab="medicamentos"]{display:none;}
+  nav.tabs button:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+
+  main{padding-top:18px;}
+  section.view{display:none;}
+  section.view.active{display:block;}
+
+  .summary{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+    margin-bottom:18px;
+  }
+  .summary .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:12px 14px; box-shadow:var(--shadow);
+    font-family:var(--sans); text-align:left; cursor:pointer; width:100%;
+  }
+  .summary .card:hover{background:var(--surface-2);}
+  .summary .card.active{border-color:var(--brand); border-width:2px; padding:11px 13px;}
+  .summary .card .n{font-family:var(--serif); font-size:26px; line-height:1;}
+  .summary .card .label{font-size:12px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.04em; margin-top:4px;}
+  .summary .card.warn .n{color:var(--danger);}
+  .summary .card.ok .n{color:var(--success);}
+  .filter-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:var(--surface-2); border-radius:10px; padding:8px 12px; margin-bottom:10px;
+    font-size:13.5px; color:var(--ink-dim);
+  }
+  .filter-bar button{background:none; border:none; color:var(--brand); font-weight:700; cursor:pointer; font-size:13.5px;}
+
+  .banner{
+    display:none;
+    background:var(--danger-soft); border:1px solid var(--danger);
+    border-radius:14px; padding:14px 16px; margin-bottom:18px;
+  }
+  .banner.show{display:block;}
+  .banner h2{font-size:16px;color:var(--danger);margin-bottom:8px;}
+  .banner .item{font-size:14px;margin:3px 0;}
+
+  .caregiver-note{
+    font-size:15px; color:var(--ink); background:var(--surface-2);
+    border-radius:12px; padding:14px 16px; margin-bottom:16px;
+  }
+  .caregiver-note ol{margin:6px 0 0; padding-left:22px;}
+  .caregiver-note li{margin:4px 0;}
+  .general-note{
+    font-size:14px; background:var(--accent-soft); border:1px solid var(--accent);
+    border-radius:10px; padding:12px 14px; margin-bottom:16px;
+  }
+  .general-note h2{font-size:13px; color:var(--accent); text-transform:uppercase; letter-spacing:.03em; margin-bottom:5px;}
+  .general-note div{white-space:pre-wrap; color:var(--ink);}
+
+  .reminders{display:grid; gap:10px; margin-bottom:18px;}
+  .reminder-card{
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    background:var(--surface); border:1px solid var(--border); border-left:5px solid var(--brand);
+    border-radius:12px; padding:12px 14px; box-shadow:var(--shadow);
+  }
+  .reminder-card.urgent{border-left-color:var(--danger);}
+  .reminder-card .rtitle{font-weight:700; font-size:15px;}
+  .reminder-card .rnote{font-size:13px; color:var(--ink-dim); margin-top:3px;}
+  .reminder-card .rwhen{font-size:12.5px; color:var(--ink-dim); margin-top:3px;}
+  .reminder-card .rlabel{
+    font-size:12px; font-weight:700; padding:4px 10px; border-radius:999px; white-space:nowrap;
+    background:var(--brand-soft); color:var(--brand);
+  }
+  .reminder-card.urgent .rlabel{background:var(--danger-soft); color:var(--danger);}
+  .reminder-card .ractions{display:flex; flex-direction:column; gap:6px; align-items:flex-end;}
+
+  .timeline{position:relative;}
+  .trow{
+    display:flex; gap:12px; padding:16px 0; border-bottom:1px solid var(--border);
+    align-items:flex-start;
+  }
+  .trow:last-child{border-bottom:none;}
+  .ttime{
+    flex:0 0 72px; font-family:var(--serif); font-size:19px; padding-top:2px;
+    color:var(--ink-dim); font-weight:600;
+  }
+  .trow.due .ttime, .trow.overdue .ttime{color:var(--danger); font-weight:700;}
+  .tbody{flex:1; min-width:0;}
+  .tname-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .tname{font-weight:700; font-size:17px;}
+  .chip{
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+    padding:3px 9px; border-radius:999px; white-space:nowrap;
+  }
+  .chip.medicamento{background:var(--brand-soft); color:var(--brand);}
+  .chip.cuidado{background:var(--accent-soft); color:var(--accent);}
+  .chip.status-pendiente{background:var(--surface-2); color:var(--ink-dim);}
+  .chip.status-due{background:var(--danger-soft); color:var(--danger);}
+  .chip.status-overdue{background:var(--danger); color:#fff;}
+  .chip.status-ok{background:var(--success-soft); color:var(--success);}
+  .chip.status-tarde{background:var(--danger-soft); color:var(--danger);}
+  .chip.status-temprano{background:var(--accent-soft); color:var(--accent);}
+  .chip.status-omitido{background:var(--skip-soft); color:var(--skip);}
+  .tdose{font-size:15.5px; color:var(--ink); margin-top:4px; line-height:1.4;}
+  .tmore{margin-top:8px;}
+  .tmore summary{
+    font-size:13.5px; color:var(--brand); cursor:pointer; font-weight:600;
+    list-style:none; display:inline-flex; align-items:center; gap:4px;
+  }
+  .tmore summary::-webkit-details-marker{display:none;}
+  .tmore summary::before{content:"ℹ️ ";}
+  .tmore[open] summary::before{content:"▾ ";}
+  .tnotes{font-size:13.5px; color:var(--ink-dim); margin-top:6px; border-left:2px solid var(--border); padding-left:10px; line-height:1.5;}
+  .tactions{display:flex; gap:10px; margin-top:14px;}
+  .tactions button{flex:1; min-height:50px; font-size:16px; border-radius:12px;}
+  .tlog{font-size:13.5px; color:var(--ink-dim); margin-top:8px;}
+
+  button.btn{
+    border-radius:10px; border:1px solid var(--border); background:var(--surface);
+    color:var(--ink); font-size:14px; font-weight:600; padding:10px 14px; cursor:pointer;
+  }
+  button.btn:hover{background:var(--surface-2);}
+  button.btn.primary{background:var(--brand); border-color:var(--brand); color:#fff;}
+  button.btn.primary:hover{filter:brightness(1.08);}
+  button.btn.ghost-danger{color:var(--danger); border-color:var(--danger-soft);}
+  button.btn.ghost-danger:hover{background:var(--danger-soft);}
+  button.btn.sm{padding:7px 11px; font-size:13px; border-radius:8px;}
+  button.btn.full{width:100%;}
+  button.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .inline-form{background:var(--surface-2); border-radius:10px; padding:12px; margin-top:10px; display:grid; gap:8px;}
+  .inline-form label{font-size:12px; color:var(--ink-dim); display:block; margin-bottom:3px;}
+  .inline-form input[type="text"], .inline-form input[type="time"], .inline-form input[type="datetime-local"], .inline-form textarea, .inline-form select{
+    width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface); color:var(--ink); font-size:14px; font-family:var(--sans);
+  }
+  .inline-form textarea{min-height:52px; resize:vertical;}
+  .inline-form .frow{display:flex; gap:10px;}
+  .inline-form .frow > *{flex:1;}
+  .inline-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:2px;}
+
+  .card-med{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:16px; margin-bottom:14px; box-shadow:var(--shadow);
+  }
+  .card-med.inactive{opacity:.55;}
+  .card-med header{display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
+  .card-med h3{font-size:17px;}
+  .card-med .purpose{font-size:13px; color:var(--ink-dim); margin-top:2px;}
+  .card-med .times-list{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+  .times-list .t{
+    font-family:var(--serif); font-size:13px; background:var(--surface-2);
+    border-radius:8px; padding:4px 9px;
+  }
+  .card-med .meta{font-size:12.5px; color:var(--ink-dim); margin-top:8px;}
+  .card-med .actions{display:flex; gap:8px; margin-top:12px;}
+
+  .hist-day{margin-bottom:22px;}
+  .hist-day h3{font-size:15px; color:var(--ink-dim); font-weight:700; margin-bottom:8px; text-transform:capitalize;}
+  .hist-row{
+    display:flex; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid var(--border);
+    font-size:14px;
+  }
+  .hist-row .htime{flex:0 0 52px; font-family:var(--serif); color:var(--ink-dim);}
+  .hist-row .hname{flex:1; font-weight:600;}
+  .hist-row .hdelta{font-size:12px; color:var(--ink-dim);}
+  .hist-row .hedit{background:none;border:none;color:var(--ink-dim);cursor:pointer;font-size:12px;text-decoration:underline;padding:0;}
+  .empty{color:var(--ink-dim); font-size:14px; padding:20px 0; text-align:center;}
+
+  .settings-block{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:14px; box-shadow:var(--shadow);}
+  .settings-block h3{font-size:15px; margin-bottom:6px;}
+  .settings-block p{font-size:13.5px; color:var(--ink-dim); margin:4px 0 10px;}
+  .settings-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:8px;}
+  .status-dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px;}
+  .status-dot.on{background:var(--success);}
+  .status-dot.off{background:var(--skip);}
+
+  dialog{
+    border:none; border-radius:16px; padding:0; max-width:480px; width:92vw;
+    background:var(--surface); color:var(--ink); box-shadow:var(--shadow);
+  }
+  dialog::backdrop{background:rgba(20,20,16,.5);}
+  .dialog-inner{padding:20px;}
+  .dialog-inner h2{font-size:18px; margin-bottom:12px;}
+
+  footer.credit{text-align:center; font-size:12px; color:var(--ink-dim); padding-top:30px;}
+
+  @media (prefers-reduced-motion: no-preference){
+    .banner.show{animation:pulse 2.2s ease-in-out infinite;}
+  }
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(179,67,43,.25);}50%{box-shadow:0 0 0 8px rgba(179,67,43,0);}}
+
+  @media (max-width:420px){
+    .summary{grid-template-columns:repeat(3,1fr); gap:8px;}
+    .summary .card{padding:10px;}
+    .summary .card .n{font-size:22px;}
+  }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="row">
+      <h1>MediClock</h1>
+      <div class="row-right">
+        <div class="date tabular" id="todayLabel"></div>
+        <button id="muteToggleBtn" title="Silenciar alarma">🔊</button>
+      </div>
+    </div>
+    <div class="patient">Paciente: <strong>Mamá</strong></div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="ahora" class="active">Ahora</button>
+      <button data-tab="historial">Historial</button>
+      <button data-tab="medicamentos">Medicamentos</button>
+      <button data-tab="ajustes">Ajustes</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="view active" id="view-ahora">
+      <div class="caregiver-note">
+        <strong>Cómo usar esta pantalla:</strong>
+        <ol>
+          <li>Lo que toca ahora o está atrasado aparece marcado en <strong style="color:var(--danger);">rojo</strong>, arriba de todo.</li>
+          <li>Dale a Mamá lo que corresponda.</li>
+          <li>Toca el botón verde <strong>✅ Ya se lo di</strong>. Si no se lo pudiste dar, toca <strong>✕ Se lo saltó</strong>.</li>
+        </ol>
+      </div>
+      <div class="general-note" id="generalNoteBox" style="display:none;"><h2>Indicaciones importantes</h2><div id="generalNoteText"></div></div>
+      <div class="reminders" id="reminders"></div>
+      <div class="summary" id="summary"></div>
+      <div class="banner" id="banner">
+        <h2>⏰ Atrasado — necesita atención</h2>
+        <div id="bannerItems"></div>
+        <div class="mute-row"><button id="bannerMuteBtn">🔇 Apagar la alarma</button></div>
+      </div>
+      <div class="filter-bar" id="filterBar" style="display:none;"></div>
+      <div class="timeline" id="timeline"></div>
+    </section>
+
+    <section class="view" id="view-historial">
+      <div id="histControls" style="margin-bottom:14px;"></div>
+      <div id="histList"></div>
+    </section>
+
+    <section class="view" id="view-medicamentos">
+      <button class="btn primary full" id="addMedBtn" style="margin-bottom:14px;">+ Agregar medicamento o cuidado</button>
+      <div id="medList"></div>
+    </section>
+
+    <section class="view" id="view-ajustes">
+      <div class="settings-block">
+        <h3>Acerca de esta versión</h3>
+        <p><strong>MediClock v1</strong>, personalizada para el cuidado de Mamá, según indicaciones médicas. Los medicamentos y cuidados de esta lista se pueden editar, pausar o eliminar en cualquier momento desde la pestaña «Medicamentos», y puedes agregar los que hagan falta más adelante (nuevos ítems, horarios, recetas y descripciones) sin perder el historial ya registrado.</p>
+      </div>
+      <div class="settings-block">
+        <h3>Indicaciones generales para el cuidador</h3>
+        <p>Este texto aparece siempre destacado arriba en la pestaña «Ahora» (ej. restricciones de alimentos, cuidados especiales).</p>
+        <textarea id="generalNotesInput" style="width:100%;min-height:70px;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:14px;font-family:inherit;"></textarea>
+        <div class="settings-row"><span></span><button class="btn sm primary" id="saveGeneralNotesBtn">Guardar indicaciones</button></div>
+      </div>
+      <div class="settings-block">
+        <h3>Recordatorios (citas, exámenes)</h3>
+        <p>Cosas puntuales que no son diarias, como repetir un examen o llevar un resultado al médico.</p>
+        <div id="reminderList"></div>
+        <div class="inline-form">
+          <div><label>Título</label><input type="text" id="rf_title" placeholder="Ej: Repetir examen de orina"></div>
+          <div class="frow">
+            <div><label>Fecha</label><input type="date" id="rf_date"></div>
+          </div>
+          <div><label>Nota (opcional)</label><textarea id="rf_note" placeholder="Ej: llevar resultado al médico"></textarea></div>
+          <div class="inline-actions"><button class="btn sm primary" id="rf_add">+ Agregar recordatorio</button></div>
+        </div>
+      </div>
+      <div class="settings-block">
+        <h3>Modo de la aplicación</h3>
+        <p><strong>Sencillo:</strong> solo lo esencial para dar los medicamentos y marcarlos, ideal para quien cuida a Mamá y no maneja mucho la tecnología. <strong>Pro:</strong> acceso completo para editar medicamentos, horarios y recetas.</p>
+        <div class="settings-row">
+          <button class="btn sm" id="modeSimpleBtn">Sencillo</button>
+          <button class="btn sm" id="modeProBtn">Pro</button>
+        </div>
+      </div>
+      <div class="settings-block">
+        <h3>Notificaciones y sonido</h3>
+        <p>Para que las alarmas suenen y aparezcan aunque tengas la pantalla apagada o minimizada, abre el enlace publicado de esta app directamente en una pestaña del navegador (no dentro del chat), y déjala abierta todo el día en un dispositivo conectado a la corriente.</p>
+        <div class="settings-row">
+          <span><span class="status-dot" id="notifDot"></span><span id="notifStatus">Notificaciones: revisando…</span></span>
+          <button class="btn sm" id="notifBtn">Activar</button>
+        </div>
+        <div class="settings-row">
+          <span><span class="status-dot" id="wakeDot"></span><span id="wakeStatus">Pantalla activa: apagado</span></span>
+          <button class="btn sm" id="wakeBtn">Mantener activa</button>
+        </div>
+        <div class="settings-row">
+          <span>Sonido de alarma</span>
+          <button class="btn sm" id="soundBtn">Silenciar</button>
+        </div>
+        <div class="settings-row">
+          <button class="btn sm" id="testAlarmBtn">🔊 Probar sonido</button>
+        </div>
+      </div>
+
+      <div class="settings-block">
+        <h3>Respaldo de datos</h3>
+        <p>Todo se guarda solo en este navegador. Si vas a usar otro dispositivo, o quieres tener una copia por seguridad, exporta un respaldo.</p>
+        <div class="settings-row">
+          <button class="btn sm" id="exportBtn">⬇ Exportar respaldo</button>
+          <button class="btn sm" id="importBtn">⬆ Importar respaldo</button>
+        </div>
+        <input type="file" id="importFile" accept="application/json" style="display:none;">
+      </div>
+
+      <div class="settings-block pro-only">
+        <h3>Restablecer</h3>
+        <p>Vuelve a dejar los medicamentos como estaban al principio (no borra el historial ya registrado).</p>
+        <button class="btn sm" id="resetMedsBtn">Restaurar medicamentos por defecto</button>
+        <p style="margin-top:14px;">Borra absolutamente todo (medicamentos e historial). No se puede deshacer.</p>
+        <button class="btn sm ghost-danger" id="wipeBtn">Borrar todos los datos</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="credit">MediClock v1 — uso familiar y privado, todo se guarda en este navegador.</footer>
+</div>
+
+<dialog id="dialog"><div class="dialog-inner" id="dialogInner"></div></dialog>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "mediclock_v1";
+  var MARGIN_DEFAULT = 30;
+
+  function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+
+  function defaultMeds(){
+    return [
+      {
+        id:"cresoyan", active:true, category:"medicamento",
+        name:"Cresoyan + Lapachol (infusión antibiótica)",
+        purpose:"Antibiótico — tratamiento para Escherichia coli",
+        dose:"Taza pequeña (no a tope) de la infusión Cresoyan + 60 gotas de Cresoyan + 1 cápsula de Lapachol",
+        notes:"La infusión ya está preparada y embotellada en la nevera, botella etiquetada «CRESOYAN». Receta: hervir raíz de malojillo + cilantro en 3 litros de agua, dejar enfriar y embotellar.",
+        times:["09:00","13:00","17:00","21:00"], margin:30
+      },
+      {
+        id:"vesicul", active:true, category:"medicamento",
+        name:"Infusión de yerbas + Vesicul",
+        purpose:"Digestivo — para que pueda comer sin que le haga daño al estómago",
+        dose:"Taza de la infusión de yerbas + 1 cucharada de Vesicul + jugo de 1/2 limón + un poco de bicarbonato en polvo, revolver bien",
+        notes:"Dar justo después de cada comida. Botella plástica etiquetada «VESICUL», en la nevera. Receta: hervir 10 min en 3 litros de agua: verdolaga, anís, hierbabuena, semilla de lechosa, clavito y laurel (medidas al ojo), dejar enfriar.",
+        times:["10:00","14:00","19:00"], margin:30
+      },
+      {
+        id:"cds", active:true, category:"medicamento",
+        name:"C.D.S. (Cloruro de Sodio) en agua",
+        purpose:"",
+        dose:"125 ml del litro preparado (1 litro de agua fría + 10cc de C.D.S.), en tomas divididas durante el día",
+        notes:"Preparar a diario, mantener refrigerado. Botella plástica etiquetada «C.D.S.». Nota: autoridades sanitarias (FDA/OMS) han señalado el uso oral de dióxido de cloro como potencialmente riesgoso — de ser posible, confirmar con supervisión médica.",
+        times:["09:00","11:00","13:00","15:00","17:00","19:00","21:00","23:00"], margin:30
+      },
+      {
+        id:"levodopa", active:true, category:"medicamento",
+        name:"Levodopa",
+        purpose:"",
+        dose:"1/4 de pastilla azul",
+        notes:"",
+        times:["09:00","15:00","21:00"], margin:30
+      },
+      {
+        id:"jugo_huevo", active:true, category:"medicamento",
+        name:"Jugo de naranja con huevo",
+        purpose:"",
+        dose:"1 vaso de jugo de naranja batido con 1 huevo entero",
+        notes:"Dar antes de desayunar y antes de cenar, con el estómago vacío.",
+        times:["09:00","21:00"], margin:30
+      },
+      {
+        id:"masaje", active:true, category:"cuidado",
+        name:"Masaje con crema analgésica",
+        purpose:"Alivio muscular / bienestar",
+        dose:"Masaje en nuca, espalda, piernas, etc.",
+        notes:"Horario flexible según disponibilidad del cuidador.",
+        times:["10:30","15:30","20:30"], margin:60
+      },
+      {
+        id:"panal", active:true, category:"cuidado",
+        name:"Cambio de pañal",
+        purpose:"Higiene",
+        dose:"Colocar un pañal pequeño dentro del pañal grande, para ahorrar",
+        notes:"Al menos 3 veces al día. Horario flexible.",
+        times:["10:00","15:00","20:00"], margin:60
+      },
+      {
+        id:"comida", active:true, category:"cuidado",
+        name:"Comida (desayuno / almuerzo / cena)",
+        purpose:"Alimentación",
+        dose:"Darle de comer — desayuno, almuerzo o cena según la hora",
+        notes:"Recuerda lo de «Indicaciones importantes» arriba (sin granos, pastas ni mucho plátano verde).",
+        times:["10:00","14:00","21:00"], margin:45
+      }
+    ];
+  }
+
+  var DEFAULT_GENERAL_NOTES = "No puede comer: granos, ni pastas, ni mucho plátano verde, hasta que su estómago procese bien los alimentos.";
+
+  function pad(n){ return n<10 ? "0"+n : ""+n; }
+  function todayStr(d){ d = d || new Date(); return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function addDays(dateStr, n){ var d = new Date(dateStr+"T00:00:00"); d.setDate(d.getDate()+n); return todayStr(d); }
+
+  function defaultReminders(){
+    return [
+      { id:"examen_orina", title:"Repetir examen de orina", date: addDays(todayStr(),8),
+        note:"Llevar el resultado al médico para revisar cómo va el tratamiento.", done:false, notifiedOn:"" }
+    ];
+  }
+
+  function defaultState(){
+    return { meds: defaultMeds(), logs: [], settings: { soundEnabled:true }, generalNotes: DEFAULT_GENERAL_NOTES, reminders: defaultReminders(), uiMode: "simple" };
+  }
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) { var s = defaultState(); saveState(s); return s; }
+      var parsed = JSON.parse(raw);
+      if(!parsed.settings) parsed.settings = { soundEnabled:true };
+      if(typeof parsed.settings.soundEnabled !== "boolean") parsed.settings.soundEnabled = true;
+      if(typeof parsed.generalNotes !== "string") parsed.generalNotes = DEFAULT_GENERAL_NOTES;
+      if(!Array.isArray(parsed.reminders)) parsed.reminders = defaultReminders();
+      if(parsed.uiMode !== "simple" && parsed.uiMode !== "pro") parsed.uiMode = "simple";
+      if(Array.isArray(parsed.meds) && !parsed.meds.some(function(m){return m.id==="comida";})){
+        parsed.meds.push(defaultMeds().filter(function(m){return m.id==="comida";})[0]);
+      }
+      return parsed;
+    }catch(e){
+      var s2 = defaultState(); saveState(s2); return s2;
+    }
+  }
+  function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+
+  var state = loadState();
+  var activeTab = "ahora";
+  var histDate = null; // null = all dates
+  var timelineFilter = null; // null | "hecho" | "atrasado" | "porvenir"
+  var pendingAlarms = {}; // slotKey -> {firstSeenAt, soundPlayed, lastSoundAt}
+  var ALERT_DELAY_MS = 10000; // visual/vibration warning before sound starts
+  var RENOTIFY_MS = 5*60*1000;
+
+  // ---------- date/time helpers ----------
+  function fmtDateLong(dateStr){
+    var d = new Date(dateStr+"T00:00:00");
+    return d.toLocaleDateString("es-VE",{ weekday:"long", day:"numeric", month:"long" });
+  }
+  function scheduledDateTime(dateStr, hhmm){
+    return new Date(dateStr+"T"+hhmm+":00");
+  }
+  function slotKey(medId, dateStr, hhmm){ return medId+"|"+dateStr+"|"+hhmm; }
+  function formatTime12(hhmm){
+    var p = hhmm.split(":"); var h = parseInt(p[0],10); var m = p[1];
+    var suffix = h>=12 ? "pm" : "am";
+    var h12 = h % 12; if(h12===0) h12=12;
+    return h12+":"+m+" "+suffix;
+  }
+
+  function findLog(medId, dateStr, hhmm){
+    for(var i=0;i<state.logs.length;i++){
+      var l = state.logs[i];
+      if(l.medId===medId && l.date===dateStr && l.time===hhmm) return l;
+    }
+    return null;
+  }
+
+  function todaysOccurrences(dateStr){
+    var out = [];
+    state.meds.forEach(function(m){
+      if(!m.active) return;
+      m.times.forEach(function(t){
+        out.push({ med:m, date:dateStr, time:t });
+      });
+    });
+    out.sort(function(a,b){ return a.time.localeCompare(b.time); });
+    return out;
+  }
+
+  function computeStatus(occ, now){
+    var log = findLog(occ.med.id, occ.date, occ.time);
+    if(log){
+      return { kind: log.status, log: log };
+    }
+    var sched = scheduledDateTime(occ.date, occ.time);
+    var diffMin = (now - sched) / 60000;
+    var margin = occ.med.margin || MARGIN_DEFAULT;
+    if(diffMin < -margin) return { kind:"upcoming" };
+    if(diffMin >= -margin && diffMin < margin) return { kind:"due" };
+    return { kind:"overdue" };
+  }
+
+  function bucketOf(kind){
+    if(kind==="dado" || kind==="omitido") return "hecho";
+    if(kind==="overdue") return "atrasado";
+    return "porvenir"; // due or upcoming
+  }
+
+  // ---------- alarms ----------
+  var activeAudioCtxs = [];
+  function beep(){
+    try{
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return;
+      var ctx = new Ctx();
+      activeAudioCtxs.push(ctx);
+      var freqs = [880, 660, 880];
+      freqs.forEach(function(f, i){
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = f;
+        gain.gain.value = 0.001;
+        osc.connect(gain); gain.connect(ctx.destination);
+        var start = ctx.currentTime + i*0.28;
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.exponentialRampToValueAtTime(0.22, start+0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, start+0.24);
+        osc.start(start); osc.stop(start+0.26);
+      });
+      setTimeout(function(){
+        try{ ctx.close(); }catch(e){}
+        activeAudioCtxs = activeAudioCtxs.filter(function(c){return c!==ctx;});
+      }, 1200);
+    }catch(e){}
+  }
+
+  function stopAllSound(){
+    activeAudioCtxs.forEach(function(ctx){ try{ ctx.close(); }catch(e){} });
+    activeAudioCtxs = [];
+  }
+
+  function silenceAlarm(){
+    stopAllSound();
+    state.settings.soundEnabled = false;
+    saveState(state);
+    refreshMuteBtn();
+    if(activeTab==="ajustes") refreshSoundBtn();
+  }
+
+  function refreshMuteBtn(){
+    var on = state.settings.soundEnabled;
+    var btn = document.getElementById("muteToggleBtn");
+    if(!btn) return;
+    btn.textContent = on ? "🔊" : "🔇";
+    btn.title = on ? "Silenciar alarma" : "Sonido apagado — tocar para activar";
+    btn.classList.toggle("muted", !on);
+  }
+
+  function notify(title, body, tag){
+    try{
+      if(window.Notification && Notification.permission === "granted"){
+        new Notification(title, { body: body, tag: tag });
+      }
+    }catch(e){}
+  }
+
+  function vibrate(pattern){
+    try{ if(navigator.vibrate) navigator.vibrate(pattern || [200,100,200]); }catch(e){}
+  }
+
+  function checkAlarms(){
+    var now = new Date();
+    var nowMs = now.getTime();
+    var dateStr = todayStr(now);
+    var occs = todaysOccurrences(dateStr);
+    var activeKeys = {};
+    occs.forEach(function(occ){
+      var st = computeStatus(occ, now);
+      if(st.kind !== "due" && st.kind !== "overdue") return;
+      var key = slotKey(occ.med.id, occ.date, occ.time);
+      activeKeys[key] = true;
+      var p = pendingAlarms[key];
+      if(!p){
+        // just became due: silent visual + vibration warning, no sound yet
+        pendingAlarms[key] = { firstSeenAt: nowMs, soundPlayed:false, lastSoundAt:0 };
+        vibrate([120,60,120]);
+        return;
+      }
+      if(!p.soundPlayed){
+        if(nowMs - p.firstSeenAt >= ALERT_DELAY_MS){
+          p.soundPlayed = true; p.lastSoundAt = nowMs;
+          if(state.settings.soundEnabled) beep();
+          vibrate([200,100,200]);
+          notify("Toca: " + occ.med.name, formatTime12(occ.time) + " — " + occ.med.dose, key);
+        }
+        return;
+      }
+      if(nowMs - p.lastSoundAt > RENOTIFY_MS){
+        p.lastSoundAt = nowMs;
+        if(state.settings.soundEnabled) beep();
+        vibrate([200,100,200]);
+        notify("Toca: " + occ.med.name, formatTime12(occ.time) + " — " + occ.med.dose, key);
+      }
+    });
+    Object.keys(pendingAlarms).forEach(function(k){ if(!activeKeys[k]) delete pendingAlarms[k]; });
+
+    var todayS = todayStr(now);
+    var remindersChanged = false;
+    state.reminders.forEach(function(r){
+      if(r.done) return;
+      if(r.date <= todayS && r.notifiedOn !== todayS){
+        r.notifiedOn = todayS;
+        remindersChanged = true;
+        vibrate([150,80,150,80,150]);
+        if(state.settings.soundEnabled) beep();
+        notify("Recordatorio: " + r.title, r.note || fmtDateLong(r.date), "reminder-"+r.id+"-"+todayS);
+      }
+    });
+    if(remindersChanged) saveState(state);
+  }
+
+  // ---------- rendering ----------
+  function escapeHtml(s){
+    return (s||"").replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function statusChip(kind, delta){
+    var map = {
+      upcoming: ["status-pendiente","⏳ Pendiente"],
+      due: ["status-due","🔔 Toca ahora"],
+      overdue: ["status-overdue","⏰ Atrasado"],
+      dado: ["status-ok", "✅ " + (delta==null ? "Dado" : (Math.abs(delta)<1 ? "Dado a tiempo" : (delta>0 ? "Dado, +"+Math.round(delta)+" min tarde" : "Dado, "+Math.round(-delta)+" min antes")))],
+      omitido: ["status-omitido","⛔ Omitido"]
+    };
+    var m = map[kind] || ["status-pendiente", kind];
+    return '<span class="chip '+m[0]+'">'+m[1]+'</span>';
+  }
+
+  function renderSummary(){
+    var now = new Date();
+    var dateStr = todayStr(now);
+    var occs = todaysOccurrences(dateStr);
+    var done = 0, overdue = 0, pending = 0;
+    occs.forEach(function(occ){
+      var b = bucketOf(computeStatus(occ, now).kind);
+      if(b==="hecho") done++; else if(b==="atrasado") overdue++; else pending++;
+    });
+    document.getElementById("summary").innerHTML =
+      '<button class="card ok'+(timelineFilter==="hecho"?" active":"")+'" data-filter="hecho"><div class="n tabular">'+done+' / '+occs.length+'</div><div class="label">Hecho hoy</div></button>'+
+      '<button class="card warn'+(timelineFilter==="atrasado"?" active":"")+'" data-filter="atrasado"><div class="n tabular">'+overdue+'</div><div class="label">Atrasado</div></button>'+
+      '<button class="card'+(timelineFilter==="porvenir"?" active":"")+'" data-filter="porvenir"><div class="n tabular">'+pending+'</div><div class="label">Por venir</div></button>';
+  }
+
+  function renderBanner(){
+    var now = new Date();
+    var dateStr = todayStr(now);
+    var occs = todaysOccurrences(dateStr);
+    var overdueItems = occs.filter(function(occ){ return computeStatus(occ, now).kind === "overdue"; });
+    var banner = document.getElementById("banner");
+    if(overdueItems.length===0){ banner.classList.remove("show"); return; }
+    banner.classList.add("show");
+    document.getElementById("bannerItems").innerHTML = overdueItems.map(function(occ){
+      return '<div class="item">• <strong>'+escapeHtml(occ.med.name)+'</strong> — era a las '+formatTime12(occ.time)+'</div>';
+    }).join("");
+  }
+
+  var FILTER_LABELS = { hecho:"Ya hecho hoy", atrasado:"Atrasado", porvenir:"Por venir" };
+
+  function renderTimeline(){
+    var now = new Date();
+    var dateStr = todayStr(now);
+    var occs = todaysOccurrences(dateStr);
+    var filterBar = document.getElementById("filterBar");
+    if(timelineFilter){
+      filterBar.style.display = "flex";
+      filterBar.innerHTML = '<span>Mostrando: <strong>'+FILTER_LABELS[timelineFilter]+'</strong></span><button data-clear-filter="1">Ver lo pendiente ✕</button>';
+      occs = occs.filter(function(occ){ return bucketOf(computeStatus(occ, now).kind) === timelineFilter; });
+    } else {
+      filterBar.style.display = "none";
+      occs = occs.filter(function(occ){ return bucketOf(computeStatus(occ, now).kind) !== "hecho"; });
+    }
+    var html = occs.map(function(occ){
+      var st = computeStatus(occ, now);
+      var rowClass = (st.kind==="due") ? "due" : (st.kind==="overdue" ? "overdue" : "");
+      var key = slotKey(occ.med.id, occ.date, occ.time);
+      var moreBits = [];
+      if(occ.med.purpose) moreBits.push(escapeHtml(occ.med.purpose));
+      if(occ.med.notes) moreBits.push(escapeHtml(occ.med.notes));
+      var more = moreBits.length ? '<details class="tmore"><summary>Más información</summary><div class="tnotes">'+moreBits.join('<br><br>')+'</div></details>' : "";
+      var actions = "";
+      var logInfo = "";
+      if(st.kind==="dado" || st.kind==="omitido"){
+        var l = st.log;
+        var when = new Date(l.givenAt);
+        var timeStr = formatTime12(pad(when.getHours())+":"+pad(when.getMinutes()));
+        logInfo = '<div class="tlog">'+(l.status==="dado" ? "✅ Dado a las "+timeStr : "⛔ Marcado como omitido")+
+          (l.by ? " · por "+escapeHtml(l.by) : "") + (l.note ? " · \""+escapeHtml(l.note)+"\"" : "") +
+          ' <button class="hedit pro-only" data-edit-log="'+l.id+'" style="background:none;border:none;color:var(--ink-dim);cursor:pointer;text-decoration:underline;font-size:12px;padding:0;margin-left:4px;">editar</button></div>';
+      } else {
+        actions = '<div class="tactions">'+
+          '<button class="btn primary" data-quick-give="'+key+'">✅ Ya se lo di</button>'+
+          '<button class="btn" data-skip="'+key+'">✕ Se lo saltó</button>'+
+          '</div>'+
+          '<button class="hedit" data-give="'+key+'" style="background:none;border:none;color:var(--ink-dim);cursor:pointer;text-decoration:underline;font-size:12.5px;padding:6px 0 0;">Ajustar hora o agregar nota</button>';
+      }
+      var chip = (st.kind==="dado"||st.kind==="omitido") ? statusChip(st.kind, st.log.deltaMinutes) : statusChip(st.kind);
+      return '<div class="trow '+rowClass+'" data-slot="'+key+'">'+
+        '<div class="ttime tabular">'+formatTime12(occ.time)+'</div>'+
+        '<div class="tbody">'+
+          '<div class="tname-row"><span class="tname">'+escapeHtml(occ.med.name)+'</span>'+
+          '<span class="chip '+occ.med.category+'">'+(occ.med.category==="medicamento"?"Medicamento":"Cuidado")+'</span>'+chip+'</div>'+
+          '<div class="tdose">'+escapeHtml(occ.med.dose)+'</div>'+
+          more + actions + logInfo +
+          '<div class="give-form-slot"></div>'+
+        '</div></div>';
+    }).join("");
+    var emptyMsg = timelineFilter ? "No hay nada en esta categoría." : "🎉 Ya diste todo lo de hoy. Mañana se anuncia todo de nuevo.";
+    document.getElementById("timeline").innerHTML = html || '<div class="empty">'+emptyMsg+'</div>';
+  }
+
+  function renderReminders(){
+    var box = document.getElementById("reminders");
+    var now = new Date();
+    var todayS = todayStr(now);
+    var active = state.reminders.filter(function(r){ return !r.done; });
+    active.sort(function(a,b){ return a.date.localeCompare(b.date); });
+    if(active.length===0){ box.innerHTML=""; return; }
+    box.innerHTML = active.map(function(r){
+      var days = Math.round((new Date(r.date+"T00:00:00") - new Date(todayS+"T00:00:00"))/86400000);
+      var label = days===0 ? "HOY" : days>0 ? ("en "+days+" día"+(days===1?"":"s")) : ("atrasado "+(-days)+" día"+(days===-1?"":"s"));
+      var urgent = days<=0;
+      return '<div class="reminder-card'+(urgent?" urgent":"")+'">'+
+        '<div><div class="rtitle">📋 '+escapeHtml(r.title)+'</div>'+
+        '<div class="rwhen">'+fmtDateLong(r.date)+'</div>'+
+        (r.note ? '<div class="rnote">'+escapeHtml(r.note)+'</div>' : "")+
+        '</div>'+
+        '<div class="ractions"><span class="rlabel">'+label+'</span>'+
+        '<button class="btn sm" data-reminder-done="'+r.id+'">Marcar hecho</button></div>'+
+        '</div>';
+    }).join("");
+  }
+
+  function renderGeneralNote(){
+    var box = document.getElementById("generalNoteBox");
+    var text = (state.generalNotes||"").trim();
+    if(!text){ box.style.display="none"; return; }
+    box.style.display="block";
+    document.getElementById("generalNoteText").textContent = text;
+  }
+
+  function renderAhora(){
+    document.getElementById("todayLabel").textContent = fmtDateLong(todayStr());
+    refreshMuteBtn();
+    renderGeneralNote();
+    renderReminders();
+    renderSummary();
+    renderBanner();
+    renderTimeline();
+  }
+
+  function openGiveForm(key, mode){
+    var row = document.querySelector('.trow[data-slot="'+key+'"] .give-form-slot');
+    if(!row) return;
+    var parts = key.split("|");
+    var medId = parts[0], date = parts[1], time = parts[2];
+    var now = new Date();
+    var nowLocal = date===todayStr(now) ? pad(now.getHours())+":"+pad(now.getMinutes()) : time;
+    if(mode==="give"){
+      row.innerHTML =
+        '<div class="inline-form">'+
+          '<div class="frow">'+
+            '<div><label>Hora real</label><input type="time" id="gf_time" value="'+nowLocal+'"></div>'+
+            '<div><label>Quién lo dio (opcional)</label><input type="text" id="gf_by" placeholder="Nombre"></div>'+
+          '</div>'+
+          '<div><label>Nota (opcional)</label><textarea id="gf_note" placeholder="Ej: le costó tragar la cápsula"></textarea></div>'+
+          '<div class="inline-actions"><button class="btn sm" data-cancel="'+key+'">Cancelar</button><button class="btn sm primary" data-confirm-give="'+key+'">Confirmar</button></div>'+
+        '</div>';
+    } else {
+      row.innerHTML =
+        '<div class="inline-form">'+
+          '<div><label>¿Por qué se saltó? (opcional)</label><textarea id="gf_note" placeholder="Ej: estaba dormida, se rehusó, etc."></textarea></div>'+
+          '<div class="inline-actions"><button class="btn sm" data-cancel="'+key+'">Cancelar</button><button class="btn sm ghost-danger" data-confirm-skip="'+key+'">Confirmar omitido</button></div>'+
+        '</div>';
+    }
+  }
+
+  function confirmGive(key){
+    var parts = key.split("|");
+    var medId = parts[0], date = parts[1], time = parts[2];
+    var timeInput = document.getElementById("gf_time");
+    var byInput = document.getElementById("gf_by");
+    var noteInput = document.getElementById("gf_note");
+    var realTime = (timeInput && timeInput.value) ? timeInput.value : time;
+    logGive(medId, date, time, realTime, byInput ? byInput.value.trim() : "", noteInput ? noteInput.value.trim() : "");
+  }
+
+  function quickGive(key){
+    var parts = key.split("|");
+    var medId = parts[0], date = parts[1], time = parts[2];
+    var now = new Date();
+    var realTime = date===todayStr(now) ? pad(now.getHours())+":"+pad(now.getMinutes()) : time;
+    logGive(medId, date, time, realTime, "", "");
+  }
+
+  function logGive(medId, date, time, realTime, by, note){
+    var givenAt = new Date(date+"T"+realTime+":00");
+    var sched = scheduledDateTime(date, time);
+    var deltaMinutes = (givenAt - sched)/60000;
+    state.logs.push({
+      id: uid(), medId: medId, date: date, time: time,
+      status: "dado", givenAt: givenAt.toISOString(),
+      deltaMinutes: deltaMinutes, by: by, note: note
+    });
+    saveState(state);
+    renderAhora();
+  }
+
+  function confirmSkip(key){
+    var parts = key.split("|");
+    var medId = parts[0], date = parts[1], time = parts[2];
+    var noteInput = document.getElementById("gf_note");
+    state.logs.push({
+      id: uid(), medId: medId, date: date, time: time,
+      status: "omitido", givenAt: new Date().toISOString(),
+      deltaMinutes: null, by:"", note: noteInput ? noteInput.value.trim() : ""
+    });
+    saveState(state);
+    renderAhora();
+  }
+
+  // ---------- historial ----------
+  function allDates(){
+    var set = {};
+    state.logs.forEach(function(l){ set[l.date]=true; });
+    set[todayStr()] = true;
+    return Object.keys(set).sort().reverse();
+  }
+
+  function renderHistControls(){
+    var dates = allDates();
+    var opts = '<option value="">Todas las fechas</option>' + dates.map(function(d){
+      return '<option value="'+d+'"'+(histDate===d?" selected":"")+'>'+fmtDateLong(d)+'</option>';
+    }).join("");
+    document.getElementById("histControls").innerHTML =
+      '<select id="histDateSelect" style="padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:14px;">'+opts+'</select>';
+  }
+
+  function renderHistList(){
+    var dates = histDate ? [histDate] : allDates();
+    var html = "";
+    dates.forEach(function(d){
+      var logs = state.logs.filter(function(l){ return l.date===d; });
+      logs.sort(function(a,b){ return a.time.localeCompare(b.time); });
+      if(logs.length===0) return;
+      html += '<div class="hist-day"><h3>'+fmtDateLong(d)+'</h3>';
+      logs.forEach(function(l){
+        var med = state.meds.filter(function(m){return m.id===l.medId;})[0];
+        var name = med ? med.name : l.medId;
+        var chip = statusChip(l.status, l.deltaMinutes);
+        var extra = [];
+        if(l.by) extra.push("por "+l.by);
+        if(l.note) extra.push('"'+l.note+'"');
+        html += '<div class="hist-row">'+
+          '<div class="htime tabular">'+formatTime12(l.time)+'</div>'+
+          '<div class="hname">'+escapeHtml(name)+'</div>'+
+          chip+
+          '<div class="hdelta">'+escapeHtml(extra.join(" · "))+'</div>'+
+          '<button class="hedit pro-only" data-del-log="'+l.id+'">borrar</button>'+
+          '</div>';
+      });
+      html += '</div>';
+    });
+    document.getElementById("histList").innerHTML = html || '<div class="empty">Todavía no hay nada registrado.</div>';
+  }
+
+  function renderHistorial(){
+    renderHistControls();
+    renderHistList();
+  }
+
+  // ---------- medicamentos ----------
+  function medFormHtml(med){
+    med = med || { id:"", active:true, category:"medicamento", name:"", purpose:"", dose:"", notes:"", times:[], margin:30 };
+    var timesStr = med.times.join(", ");
+    return '<div class="dialog-inner">'+
+      '<h2>'+(med.id ? "Editar" : "Nuevo")+'</h2>'+
+      '<div class="inline-form">'+
+        '<div><label>Nombre</label><input type="text" id="mf_name" value="'+escapeHtml(med.name)+'"></div>'+
+        '<div class="frow">'+
+          '<div><label>Categoría</label><select id="mf_category">'+
+            '<option value="medicamento"'+(med.category==="medicamento"?" selected":"")+'>Medicamento</option>'+
+            '<option value="cuidado"'+(med.category==="cuidado"?" selected":"")+'>Cuidado</option>'+
+          '</select></div>'+
+          '<div><label>Margen (minutos)</label><input type="text" id="mf_margin" value="'+med.margin+'"></div>'+
+        '</div>'+
+        '<div><label>Para qué es (opcional)</label><input type="text" id="mf_purpose" value="'+escapeHtml(med.purpose)+'"></div>'+
+        '<div><label>Dosis / qué hacer</label><textarea id="mf_dose">'+escapeHtml(med.dose)+'</textarea></div>'+
+        '<div><label>Notas / receta / indicaciones (opcional)</label><textarea id="mf_notes">'+escapeHtml(med.notes)+'</textarea></div>'+
+        '<div><label>Horarios (separados por coma, formato 24h, ej: 09:00, 13:00)</label><input type="text" id="mf_times" value="'+escapeHtml(timesStr)+'"></div>'+
+        '<div class="inline-actions">'+
+          (med.id ? '<button class="btn sm ghost-danger" id="mf_delete" data-id="'+med.id+'">Eliminar</button>' : '<span></span>')+
+          '<span style="flex:1"></span>'+
+          '<button class="btn sm" id="mf_cancel">Cancelar</button>'+
+          '<button class="btn sm primary" id="mf_save" data-id="'+med.id+'">Guardar</button>'+
+        '</div>'+
+      '</div></div>';
+  }
+
+  function openMedDialog(medId){
+    var med = medId ? state.meds.filter(function(m){return m.id===medId;})[0] : null;
+    var dlg = document.getElementById("dialog");
+    document.getElementById("dialogInner").outerHTML = medFormHtml(med);
+    dlg.showModal();
+    document.getElementById("mf_cancel").addEventListener("click", function(){ dlg.close(); });
+    document.getElementById("mf_save").addEventListener("click", function(){ saveMedFromForm(medId); });
+    var delBtn = document.getElementById("mf_delete");
+    if(delBtn) delBtn.addEventListener("click", function(){
+      if(confirm("¿Eliminar este medicamento/cuidado? El historial ya registrado se conserva.")){
+        state.meds = state.meds.filter(function(m){return m.id!==medId;});
+        saveState(state); dlg.close(); renderMedicamentos();
+      }
+    });
+  }
+
+  function saveMedFromForm(medId){
+    var name = document.getElementById("mf_name").value.trim();
+    if(!name){ alert("Ponle un nombre."); return; }
+    var timesRaw = document.getElementById("mf_times").value;
+    var times = timesRaw.split(",").map(function(t){return t.trim();}).filter(function(t){return /^\d{1,2}:\d{2}$/.test(t);})
+      .map(function(t){ var p=t.split(":"); return pad(parseInt(p[0],10))+":"+pad(parseInt(p[1],10)); });
+    times.sort();
+    var margin = parseInt(document.getElementById("mf_margin").value,10);
+    if(isNaN(margin) || margin<0) margin = MARGIN_DEFAULT;
+    var data = {
+      name: name,
+      category: document.getElementById("mf_category").value,
+      purpose: document.getElementById("mf_purpose").value.trim(),
+      dose: document.getElementById("mf_dose").value.trim(),
+      notes: document.getElementById("mf_notes").value.trim(),
+      times: times, margin: margin, active: true
+    };
+    if(medId){
+      var med = state.meds.filter(function(m){return m.id===medId;})[0];
+      Object.assign(med, data);
+    } else {
+      data.id = uid(); data.active = true;
+      state.meds.push(data);
+    }
+    saveState(state);
+    document.getElementById("dialog").close();
+    renderMedicamentos();
+  }
+
+  function renderMedicamentos(){
+    var html = state.meds.map(function(m){
+      return '<div class="card-med'+(m.active?"":" inactive")+'">'+
+        '<header>'+
+          '<div><h3>'+escapeHtml(m.name)+'</h3><div class="purpose">'+escapeHtml(m.purpose||"")+'</div></div>'+
+          '<span class="chip '+m.category+'">'+(m.category==="medicamento"?"Medicamento":"Cuidado")+'</span>'+
+        '</header>'+
+        '<div class="meta">'+escapeHtml(m.dose)+'</div>'+
+        (m.notes ? '<div class="meta" style="margin-top:6px;">'+escapeHtml(m.notes)+'</div>' : "")+
+        '<div class="times-list">'+m.times.map(function(t){return '<span class="t tabular">'+formatTime12(t)+'</span>';}).join("")+'</div>'+
+        '<div class="meta">Margen: '+m.margin+' min</div>'+
+        '<div class="actions">'+
+          '<button class="btn sm" data-edit-med="'+m.id+'">Editar</button>'+
+          '<button class="btn sm" data-toggle-med="'+m.id+'">'+(m.active?"Pausar":"Reactivar")+'</button>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+    document.getElementById("medList").innerHTML = html || '<div class="empty">No hay medicamentos todavía.</div>';
+  }
+
+  // ---------- ajustes: recordatorios ----------
+  function renderReminderList(){
+    var list = state.reminders.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+    document.getElementById("reminderList").innerHTML = list.map(function(r){
+      return '<div class="hist-row">'+
+        '<div class="htime tabular">'+fmtDateLong(r.date)+'</div>'+
+        '<div class="hname">'+escapeHtml(r.title)+(r.done?" (hecho)":"")+'</div>'+
+        '<button class="hedit" data-del-reminder="'+r.id+'">eliminar</button>'+
+        '</div>';
+    }).join("") || '<div class="empty">No hay recordatorios.</div>';
+  }
+
+  document.getElementById("reminderList").addEventListener("click", function(e){
+    if(e.target.matches("[data-del-reminder]")){
+      state.reminders = state.reminders.filter(function(r){return r.id!==e.target.getAttribute("data-del-reminder");});
+      saveState(state); renderReminderList();
+    }
+  });
+
+  document.getElementById("rf_add").addEventListener("click", function(){
+    var title = document.getElementById("rf_title").value.trim();
+    var date = document.getElementById("rf_date").value;
+    var note = document.getElementById("rf_note").value.trim();
+    if(!title || !date){ alert("Ponle un título y una fecha."); return; }
+    state.reminders.push({ id: uid(), title: title, date: date, note: note, done:false, notifiedOn:"" });
+    saveState(state);
+    document.getElementById("rf_title").value = "";
+    document.getElementById("rf_note").value = "";
+    renderReminderList();
+    alert("Recordatorio agregado.");
+  });
+
+  // ---------- modo sencillo / pro ----------
+  function isSimple(){ return state.uiMode !== "pro"; }
+
+  function applyUiMode(){
+    var simple = isSimple();
+    document.body.classList.toggle("mode-simple", simple);
+    document.getElementById("modeSimpleBtn").classList.toggle("primary", simple);
+    document.getElementById("modeProBtn").classList.toggle("primary", !simple);
+    if(simple && activeTab==="medicamentos") showTab("ahora");
+  }
+
+  // ---------- ajustes ----------
+  function refreshNotifStatus(){
+    var dot = document.getElementById("notifDot");
+    var label = document.getElementById("notifStatus");
+    var btn = document.getElementById("notifBtn");
+    if(!("Notification" in window)){
+      dot.className="status-dot off"; label.textContent="Notificaciones: no disponibles en este navegador"; btn.disabled=true; return;
+    }
+    var p = Notification.permission;
+    if(p==="granted"){ dot.className="status-dot on"; label.textContent="Notificaciones: activadas"; btn.textContent="Activadas"; btn.disabled=true; }
+    else if(p==="denied"){ dot.className="status-dot off"; label.textContent="Notificaciones: bloqueadas por el navegador"; btn.disabled=true; }
+    else { dot.className="status-dot off"; label.textContent="Notificaciones: desactivadas"; btn.disabled=false; btn.textContent="Activar"; }
+  }
+
+  var wakeLock = null;
+  function refreshWakeStatus(){
+    var dot = document.getElementById("wakeDot");
+    var label = document.getElementById("wakeStatus");
+    if(wakeLock){ dot.className="status-dot on"; label.textContent="Pantalla activa: encendida"; }
+    else { dot.className="status-dot off"; label.textContent="Pantalla activa: apagado"; }
+  }
+
+  function refreshSoundBtn(){
+    document.getElementById("soundBtn").textContent = state.settings.soundEnabled ? "Silenciar" : "Activar sonido";
+  }
+
+  // ---------- tabs ----------
+  function showTab(tab){
+    activeTab = tab;
+    document.querySelectorAll("#tabs button").forEach(function(b){
+      b.classList.toggle("active", b.getAttribute("data-tab")===tab);
+    });
+    document.querySelectorAll("section.view").forEach(function(v){ v.classList.remove("active"); });
+    document.getElementById("view-"+tab).classList.add("active");
+    if(tab==="ahora") renderAhora();
+    if(tab==="historial") renderHistorial();
+    if(tab==="medicamentos") renderMedicamentos();
+    if(tab==="ajustes"){
+      refreshNotifStatus(); refreshWakeStatus(); refreshSoundBtn();
+      document.getElementById("generalNotesInput").value = state.generalNotes || "";
+      renderReminderList();
+    }
+    applyUiMode();
+  }
+
+  // ---------- events ----------
+  document.getElementById("tabs").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-tab]");
+    if(btn) showTab(btn.getAttribute("data-tab"));
+  });
+
+  document.getElementById("summary").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-filter]");
+    if(!btn) return;
+    var f = btn.getAttribute("data-filter");
+    timelineFilter = (timelineFilter === f) ? null : f;
+    renderSummary(); renderTimeline();
+  });
+  document.getElementById("filterBar").addEventListener("click", function(e){
+    if(e.target.matches("[data-clear-filter]")){
+      timelineFilter = null;
+      renderSummary(); renderTimeline();
+    }
+  });
+
+  document.getElementById("timeline").addEventListener("click", function(e){
+    var t = e.target;
+    if(t.matches("[data-quick-give]")) quickGive(t.getAttribute("data-quick-give"));
+    else if(t.matches("[data-give]")) openGiveForm(t.getAttribute("data-give"), "give");
+    else if(t.matches("[data-skip]")) openGiveForm(t.getAttribute("data-skip"), "skip");
+    else if(t.matches("[data-cancel]")) renderTimeline();
+    else if(t.matches("[data-confirm-give]")) confirmGive(t.getAttribute("data-confirm-give"));
+    else if(t.matches("[data-confirm-skip]")) confirmSkip(t.getAttribute("data-confirm-skip"));
+    else if(t.matches("[data-edit-log]")){
+      var log = state.logs.filter(function(l){return l.id===t.getAttribute("data-edit-log");})[0];
+      if(log && confirm("¿Borrar este registro para volver a marcarlo?")){
+        state.logs = state.logs.filter(function(l){return l.id!==log.id;});
+        saveState(state); renderAhora();
+      }
+    }
+  });
+
+  document.getElementById("histList").addEventListener("click", function(e){
+    var t = e.target;
+    if(t.matches("[data-del-log]")){
+      if(confirm("¿Borrar este registro del historial?")){
+        state.logs = state.logs.filter(function(l){return l.id!==t.getAttribute("data-del-log");});
+        saveState(state); renderHistorial();
+      }
+    }
+  });
+
+  document.getElementById("histControls").addEventListener("change", function(e){
+    if(e.target.id==="histDateSelect"){
+      histDate = e.target.value || null;
+      renderHistList();
+    }
+  });
+
+  document.getElementById("reminders").addEventListener("click", function(e){
+    var t = e.target;
+    if(t.matches("[data-reminder-done]")){
+      var r = state.reminders.filter(function(x){return x.id===t.getAttribute("data-reminder-done");})[0];
+      if(r){ r.done = true; saveState(state); renderAhora(); }
+    }
+  });
+
+  document.getElementById("addMedBtn").addEventListener("click", function(){ openMedDialog(null); });
+  document.getElementById("medList").addEventListener("click", function(e){
+    var t = e.target;
+    if(t.matches("[data-edit-med]")) openMedDialog(t.getAttribute("data-edit-med"));
+    else if(t.matches("[data-toggle-med]")){
+      var med = state.meds.filter(function(m){return m.id===t.getAttribute("data-toggle-med");})[0];
+      med.active = !med.active; saveState(state); renderMedicamentos();
+    }
+  });
+
+  document.getElementById("modeSimpleBtn").addEventListener("click", function(){
+    state.uiMode = "simple"; saveState(state); applyUiMode();
+  });
+  document.getElementById("modeProBtn").addEventListener("click", function(){
+    state.uiMode = "pro"; saveState(state); applyUiMode();
+  });
+
+  document.getElementById("notifBtn").addEventListener("click", function(){
+    if(!("Notification" in window)) return;
+    Notification.requestPermission().then(function(){ refreshNotifStatus(); });
+  });
+
+  document.getElementById("wakeBtn").addEventListener("click", function(){
+    if(wakeLock){
+      wakeLock.release().catch(function(){});
+      wakeLock = null; refreshWakeStatus();
+      document.getElementById("wakeBtn").textContent = "Mantener activa";
+      return;
+    }
+    if(!("wakeLock" in navigator)){ alert("Este navegador no soporta mantener la pantalla activa."); return; }
+    navigator.wakeLock.request("screen").then(function(wl){
+      wakeLock = wl;
+      wl.addEventListener("release", function(){ wakeLock=null; refreshWakeStatus(); document.getElementById("wakeBtn").textContent="Mantener activa"; });
+      refreshWakeStatus();
+      document.getElementById("wakeBtn").textContent = "Desactivar";
+    }).catch(function(){ alert("No se pudo activar. Intenta de nuevo tocando la pantalla primero."); });
+  });
+
+  document.getElementById("soundBtn").addEventListener("click", function(){
+    state.settings.soundEnabled = !state.settings.soundEnabled;
+    if(!state.settings.soundEnabled) stopAllSound();
+    saveState(state); refreshSoundBtn(); refreshMuteBtn();
+  });
+  document.getElementById("testAlarmBtn").addEventListener("click", beep);
+
+  document.getElementById("muteToggleBtn").addEventListener("click", function(){
+    if(state.settings.soundEnabled){ silenceAlarm(); }
+    else{
+      state.settings.soundEnabled = true; saveState(state);
+      refreshMuteBtn();
+      if(activeTab==="ajustes") refreshSoundBtn();
+    }
+  });
+  document.getElementById("bannerMuteBtn").addEventListener("click", silenceAlarm);
+  document.getElementById("saveGeneralNotesBtn").addEventListener("click", function(){
+    state.generalNotes = document.getElementById("generalNotesInput").value;
+    saveState(state);
+    alert("Indicaciones guardadas.");
+  });
+
+  document.getElementById("exportBtn").addEventListener("click", function(){
+    var blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = "respaldo_cuido_mama_"+todayStr()+".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById("importBtn").addEventListener("click", function(){
+    document.getElementById("importFile").click();
+  });
+  document.getElementById("importFile").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var data = JSON.parse(reader.result);
+        if(!data.meds || !data.logs) throw new Error("formato inválido");
+        if(confirm("Esto reemplazará todos los datos actuales con el respaldo importado. ¿Continuar?")){
+          state = data;
+          if(!state.settings) state.settings = {soundEnabled:true};
+          saveState(state); showTab(activeTab);
+        }
+      }catch(err){ alert("El archivo no parece un respaldo válido."); }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  document.getElementById("resetMedsBtn").addEventListener("click", function(){
+    if(confirm("¿Restaurar la lista de medicamentos a la configuración original? Esto no borra el historial.")){
+      state.meds = defaultMeds();
+      saveState(state); showTab(activeTab);
+    }
+  });
+  document.getElementById("wipeBtn").addEventListener("click", function(){
+    if(confirm("Esto borra TODO (medicamentos e historial) sin poder deshacerlo. ¿Seguro?")){
+      state = defaultState(); saveState(state); showTab(activeTab);
+    }
+  });
+
+  // ---------- init ----------
+  showTab("ahora");
+  checkAlarms();
+  setInterval(function(){
+    checkAlarms();
+    if(activeTab==="ahora") renderAhora();
+  }, 3000);
+
+})();
+</script>
