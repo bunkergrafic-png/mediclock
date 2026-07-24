@@ -62,7 +62,7 @@
   body{
     background:var(--bg); color:var(--ink);
     font-family:var(--sans);
-    font-size:16px; line-height:1.45;
+    font-size:17px; line-height:1.45;
     -webkit-font-smoothing:antialiased;
   }
   h1,h2,h3{font-family:var(--serif); font-weight:600; text-wrap:balance; margin:0;}
@@ -88,11 +88,6 @@
     display:flex; align-items:center; justify-content:center;
   }
   #muteToggleBtn.muted{background:var(--danger-soft); border-color:var(--danger);}
-  .banner .mute-row{margin-top:10px;}
-  .banner .mute-row button{
-    background:var(--danger); color:#fff; border:none; border-radius:10px;
-    padding:10px 16px; font-size:14px; font-weight:700; cursor:pointer;
-  }
   header.top .patient{font-size:13px;color:var(--ink-dim);margin-top:2px;}
   header.top .patient strong{color:var(--ink);}
 
@@ -137,15 +132,6 @@
   }
   .filter-bar button{background:none; border:none; color:var(--brand); font-weight:700; cursor:pointer; font-size:13.5px;}
 
-  .banner{
-    display:none;
-    background:var(--danger-soft); border:1px solid var(--danger);
-    border-radius:14px; padding:14px 16px; margin-bottom:18px;
-  }
-  .banner.show{display:block;}
-  .banner h2{font-size:16px;color:var(--danger);margin-bottom:8px;}
-  .banner .item{font-size:14px;margin:3px 0;}
-
   .caregiver-note{
     font-size:15px; color:var(--ink); background:var(--surface-2);
     border-radius:12px; padding:14px 16px; margin-bottom:16px;
@@ -188,6 +174,47 @@
   }
   .trow.due .ttime, .trow.overdue .ttime, .trow.upcoming .ttime{color:var(--danger); font-weight:700;}
   .trow.overdue{background:linear-gradient(90deg, var(--danger-soft), transparent 40%); margin:0 -8px; padding-left:8px; padding-right:8px; border-radius:8px;}
+
+  /* Hero: the single most urgent item, shown large */
+  .trow.hero{
+    display:block; border:none; padding:0; margin-bottom:18px;
+    background:var(--surface); border:2px solid var(--border); border-radius:20px;
+    padding:20px; box-shadow:var(--shadow);
+  }
+  .trow.hero.due, .trow.hero.overdue{ border-color:var(--danger); background:var(--danger-soft); }
+  .trow.hero.upcoming{ border-color:var(--brand); }
+  .trow.hero .ttime{ font-size:34px; margin-bottom:4px; }
+  .trow.hero .tname{ font-size:24px; line-height:1.25; }
+  .trow.hero .tdose{ font-size:18px; margin-top:8px; }
+  .trow.hero .chip{ font-size:13px; padding:5px 12px; }
+  .trow.hero .tactions{ margin-top:18px; gap:12px; }
+  .trow.hero .tactions button{ min-height:60px; font-size:19px; border-radius:14px; }
+  .trow.hero .tmore summary{ font-size:15px; margin-top:6px; }
+  .mute-inline{
+    display:block; width:100%; margin-top:12px; background:var(--danger); color:#fff;
+    border:none; border-radius:12px; padding:12px 16px; font-size:15px; font-weight:700; cursor:pointer;
+  }
+
+  .next-list-wrap{ margin:4px 0 18px; }
+  .next-list-label{ font-size:13px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px; }
+  .next-list{ display:grid; gap:8px; }
+  .next-item{
+    display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:12px 14px;
+  }
+  .next-item .ni-time{ font-family:var(--serif); font-size:17px; font-weight:600; color:var(--ink-dim); flex:0 0 auto; min-width:64px; }
+  .next-item.upcoming .ni-time, .next-item.due .ni-time, .next-item.overdue .ni-time{ color:var(--danger); }
+  .next-item .ni-name{ font-size:16px; font-weight:600; }
+
+  details.see-all{ margin-top:6px; }
+  details.see-all > summary{
+    font-size:15px; font-weight:700; color:var(--brand); cursor:pointer; padding:10px 0;
+    list-style:none; display:flex; align-items:center; gap:6px;
+  }
+  details.see-all > summary::-webkit-details-marker{display:none;}
+  details.see-all > summary::before{content:"▾ ";}
+  details.see-all[open] > summary::before{content:"▴ ";}
+  details.see-all .timeline{ margin-top:6px; }
   .tbody{flex:1; min-width:0;}
   .tname-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
   .tname{font-weight:700; font-size:17px;}
@@ -289,7 +316,7 @@
   footer.credit{text-align:center; font-size:12px; color:var(--ink-dim); padding-top:30px;}
 
   @media (prefers-reduced-motion: no-preference){
-    .banner.show{animation:pulse 2.2s ease-in-out infinite;}
+    .trow.hero.overdue{animation:pulse 2.2s ease-in-out infinite;}
   }
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(179,67,43,.25);}50%{box-shadow:0 0 0 8px rgba(179,67,43,0);}}
 
@@ -331,11 +358,6 @@
       <div class="general-note" id="generalNoteBox" style="display:none;"><h2>Indicaciones importantes</h2><div id="generalNoteText"></div></div>
       <div class="reminders" id="reminders"></div>
       <div class="summary" id="summary"></div>
-      <div class="banner" id="banner">
-        <h2>⏰ Atrasado — necesita atención</h2>
-        <div id="bannerItems"></div>
-        <div class="mute-row"><button id="bannerMuteBtn">🔇 Apagar la alarma</button></div>
-      </div>
       <div class="filter-bar" id="filterBar" style="display:none;"></div>
       <div class="timeline" id="timeline"></div>
     </section>
@@ -762,71 +784,102 @@
       '<button class="card'+(timelineFilter==="porvenir"?" active":"")+'" data-filter="porvenir"><div class="n tabular">'+pending+'</div><div class="label">Por venir</div></button>';
   }
 
-  function renderBanner(){
-    var now = new Date();
-    var dateStr = todayStr(now);
-    var occs = todaysOccurrences(dateStr);
-    var overdueItems = occs.filter(function(occ){ return computeStatus(occ, now).kind === "overdue"; });
-    var banner = document.getElementById("banner");
-    if(overdueItems.length===0){ banner.classList.remove("show"); return; }
-    banner.classList.add("show");
-    document.getElementById("bannerItems").innerHTML = overdueItems.map(function(occ){
-      return '<div class="item">• <strong>'+escapeHtml(occ.med.name)+'</strong> — era a las '+formatTime12(occ.time)+'</div>';
-    }).join("");
+  var FILTER_LABELS = { hecho:"Ya hecho hoy", atrasado:"Atrasado", porvenir:"Por venir" };
+
+  function rowStatusClass(st){
+    return (st.kind==="due") ? "due" : (st.kind==="overdue" ? "overdue" : (bucketOf(st.kind)==="hecho" ? "" : "upcoming"));
   }
 
-  var FILTER_LABELS = { hecho:"Ya hecho hoy", atrasado:"Atrasado", porvenir:"Por venir" };
+  function buildRowHtml(occ, now, big){
+    var st = computeStatus(occ, now);
+    var rowClass = rowStatusClass(st);
+    var key = slotKey(occ.med.id, occ.date, occ.time);
+    var moreBits = [];
+    if(occ.med.purpose) moreBits.push(escapeHtml(occ.med.purpose));
+    if(occ.med.notes) moreBits.push(escapeHtml(occ.med.notes));
+    var more = moreBits.length ? '<details class="tmore"><summary>Más información</summary><div class="tnotes">'+moreBits.join('<br><br>')+'</div></details>' : "";
+    var actions = "";
+    var logInfo = "";
+    if(st.kind==="dado" || st.kind==="omitido"){
+      var l = st.log;
+      var when = new Date(l.givenAt);
+      var timeStr = formatTime12(pad(when.getHours())+":"+pad(when.getMinutes()));
+      logInfo = '<div class="tlog">'+(l.status==="dado" ? "✅ Dado a las "+timeStr : "⛔ Marcado como omitido")+
+        (l.by ? " · por "+escapeHtml(l.by) : "") + (l.note ? " · \""+escapeHtml(l.note)+"\"" : "") +
+        ' <button class="hedit pro-only" data-edit-log="'+l.id+'" style="background:none;border:none;color:var(--ink-dim);cursor:pointer;text-decoration:underline;font-size:12px;padding:0;margin-left:4px;">editar</button></div>';
+    } else {
+      actions = '<div class="tactions">'+
+        '<button class="btn primary" data-quick-give="'+key+'">✅ Ya se lo di</button>'+
+        '<button class="btn" data-skip="'+key+'">✕ Se lo saltó</button>'+
+        '</div>'+
+        '<button class="hedit" data-give="'+key+'" style="background:none;border:none;color:var(--ink-dim);cursor:pointer;text-decoration:underline;font-size:12.5px;padding:6px 0 0;">Ajustar hora o agregar nota</button>';
+    }
+    var chip = (st.kind==="dado"||st.kind==="omitido") ? statusChip(st.kind, st.log.deltaMinutes) : statusChip(st.kind);
+    var muteBtn = (big && (rowClass==="due" || rowClass==="overdue")) ? '<button class="mute-inline" data-silence-alarm="1">🔇 Apagar la alarma</button>' : "";
+    return '<div class="trow '+rowClass+(big?" hero":"")+'" data-slot="'+key+'">'+
+      '<div class="ttime tabular">'+formatTime12(occ.time)+'</div>'+
+      '<div class="tbody">'+
+        '<div class="tname-row"><span class="tname">'+escapeHtml(occ.med.name)+'</span>'+
+        '<span class="chip '+occ.med.category+'">'+(occ.med.category==="medicamento"?"Medicamento":"Cuidado")+'</span>'+chip+'</div>'+
+        '<div class="tdose">'+escapeHtml(occ.med.dose)+'</div>'+
+        more + muteBtn + actions + logInfo +
+        '<div class="give-form-slot"></div>'+
+      '</div></div>';
+  }
+
+  function buildNextItemHtml(occ, now){
+    var st = computeStatus(occ, now);
+    var rowClass = rowStatusClass(st);
+    return '<div class="next-item '+rowClass+'">'+
+      '<span class="ni-time tabular">'+formatTime12(occ.time)+'</span>'+
+      '<span class="ni-name">'+escapeHtml(occ.med.name)+'</span>'+
+      '</div>';
+  }
 
   function renderTimeline(){
     var now = new Date();
     var dateStr = todayStr(now);
     var occs = todaysOccurrences(dateStr);
     var filterBar = document.getElementById("filterBar");
+    var timelineEl = document.getElementById("timeline");
+
     if(timelineFilter){
       filterBar.style.display = "flex";
       filterBar.innerHTML = '<span>Mostrando: <strong>'+FILTER_LABELS[timelineFilter]+'</strong></span><button data-clear-filter="1">Ver lo pendiente ✕</button>';
       occs = occs.filter(function(occ){ return bucketOf(computeStatus(occ, now).kind) === timelineFilter; });
-    } else {
-      filterBar.style.display = "none";
-      occs = occs.filter(function(occ){ return bucketOf(computeStatus(occ, now).kind) !== "hecho"; });
+      var html = occs.map(function(occ){ return buildRowHtml(occ, now, false); }).join("");
+      timelineEl.innerHTML = html || '<div class="empty">No hay nada en esta categoría.</div>';
+      return;
     }
-    var html = occs.map(function(occ){
-      var st = computeStatus(occ, now);
-      var rowClass = (st.kind==="due") ? "due" : (st.kind==="overdue" ? "overdue" : (bucketOf(st.kind)==="hecho" ? "" : "upcoming"));
-      var key = slotKey(occ.med.id, occ.date, occ.time);
-      var moreBits = [];
-      if(occ.med.purpose) moreBits.push(escapeHtml(occ.med.purpose));
-      if(occ.med.notes) moreBits.push(escapeHtml(occ.med.notes));
-      var more = moreBits.length ? '<details class="tmore"><summary>Más información</summary><div class="tnotes">'+moreBits.join('<br><br>')+'</div></details>' : "";
-      var actions = "";
-      var logInfo = "";
-      if(st.kind==="dado" || st.kind==="omitido"){
-        var l = st.log;
-        var when = new Date(l.givenAt);
-        var timeStr = formatTime12(pad(when.getHours())+":"+pad(when.getMinutes()));
-        logInfo = '<div class="tlog">'+(l.status==="dado" ? "✅ Dado a las "+timeStr : "⛔ Marcado como omitido")+
-          (l.by ? " · por "+escapeHtml(l.by) : "") + (l.note ? " · \""+escapeHtml(l.note)+"\"" : "") +
-          ' <button class="hedit pro-only" data-edit-log="'+l.id+'" style="background:none;border:none;color:var(--ink-dim);cursor:pointer;text-decoration:underline;font-size:12px;padding:0;margin-left:4px;">editar</button></div>';
-      } else {
-        actions = '<div class="tactions">'+
-          '<button class="btn primary" data-quick-give="'+key+'">✅ Ya se lo di</button>'+
-          '<button class="btn" data-skip="'+key+'">✕ Se lo saltó</button>'+
-          '</div>'+
-          '<button class="hedit" data-give="'+key+'" style="background:none;border:none;color:var(--ink-dim);cursor:pointer;text-decoration:underline;font-size:12.5px;padding:6px 0 0;">Ajustar hora o agregar nota</button>';
-      }
-      var chip = (st.kind==="dado"||st.kind==="omitido") ? statusChip(st.kind, st.log.deltaMinutes) : statusChip(st.kind);
-      return '<div class="trow '+rowClass+'" data-slot="'+key+'">'+
-        '<div class="ttime tabular">'+formatTime12(occ.time)+'</div>'+
-        '<div class="tbody">'+
-          '<div class="tname-row"><span class="tname">'+escapeHtml(occ.med.name)+'</span>'+
-          '<span class="chip '+occ.med.category+'">'+(occ.med.category==="medicamento"?"Medicamento":"Cuidado")+'</span>'+chip+'</div>'+
-          '<div class="tdose">'+escapeHtml(occ.med.dose)+'</div>'+
-          more + actions + logInfo +
-          '<div class="give-form-slot"></div>'+
-        '</div></div>';
-    }).join("");
-    var emptyMsg = timelineFilter ? "No hay nada en esta categoría." : "🎉 Ya diste todo lo de hoy. Mañana se anuncia todo de nuevo.";
-    document.getElementById("timeline").innerHTML = html || '<div class="empty">'+emptyMsg+'</div>';
+
+    filterBar.style.display = "none";
+    var pending = occs.filter(function(occ){ return bucketOf(computeStatus(occ, now).kind) !== "hecho"; });
+
+    if(pending.length === 0){
+      timelineEl.innerHTML = '<div class="empty">🎉 Ya diste todo lo de hoy. Mañana se anuncia todo de nuevo.</div>';
+      return;
+    }
+
+    var hero = pending[0];
+    var nextUp = pending.slice(1, 4);
+    var rest = pending.slice(1);
+
+    var out = buildRowHtml(hero, now, true);
+
+    if(nextUp.length > 0){
+      out += '<div class="next-list-wrap">'+
+        '<div class="next-list-label">Después viene'+(nextUp.length>1?"n":"")+':</div>'+
+        '<div class="next-list">'+ nextUp.map(function(occ){ return buildNextItemHtml(occ, now); }).join("") +'</div>'+
+        '</div>';
+    }
+
+    if(rest.length > 0){
+      out += '<details class="tmore see-all"><summary>Ver todos los horarios de hoy ('+pending.length+')</summary>'+
+        '<div class="timeline">'+ rest.map(function(occ){ return buildRowHtml(occ, now, false); }).join("") +'</div>'+
+        '</details>';
+    }
+
+    timelineEl.innerHTML = out;
   }
 
   function renderReminders(){
@@ -865,7 +918,6 @@
     renderGeneralNote();
     renderReminders();
     renderSummary();
-    renderBanner();
     renderTimeline();
   }
 
@@ -1192,7 +1244,8 @@
 
   document.getElementById("timeline").addEventListener("click", function(e){
     var t = e.target;
-    if(t.matches("[data-quick-give]")) quickGive(t.getAttribute("data-quick-give"));
+    if(t.matches("[data-silence-alarm]")) silenceAlarm();
+    else if(t.matches("[data-quick-give]")) quickGive(t.getAttribute("data-quick-give"));
     else if(t.matches("[data-give]")) openGiveForm(t.getAttribute("data-give"), "give");
     else if(t.matches("[data-skip]")) openGiveForm(t.getAttribute("data-skip"), "skip");
     else if(t.matches("[data-cancel]")) renderTimeline();
@@ -1285,7 +1338,6 @@
       if(activeTab==="ajustes") refreshSoundBtn();
     }
   });
-  document.getElementById("bannerMuteBtn").addEventListener("click", silenceAlarm);
   document.getElementById("saveGeneralNotesBtn").addEventListener("click", function(){
     state.generalNotes = document.getElementById("generalNotesInput").value;
     saveState(state);
