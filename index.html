@@ -186,7 +186,8 @@
     flex:0 0 72px; font-family:var(--serif); font-size:19px; padding-top:2px;
     color:var(--ink-dim); font-weight:600;
   }
-  .trow.due .ttime, .trow.overdue .ttime{color:var(--danger); font-weight:700;}
+  .trow.due .ttime, .trow.overdue .ttime, .trow.upcoming .ttime{color:var(--danger); font-weight:700;}
+  .trow.overdue{background:linear-gradient(90deg, var(--danger-soft), transparent 40%); margin:0 -8px; padding-left:8px; padding-right:8px; border-radius:8px;}
   .tbody{flex:1; min-width:0;}
   .tname-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
   .tname{font-weight:700; font-size:17px;}
@@ -350,9 +351,17 @@
     </section>
 
     <section class="view" id="view-ajustes">
+      <div class="settings-block" style="border-color:var(--brand); border-width:2px;">
+        <h3>Modo de la aplicación</h3>
+        <p><strong>Sencillo:</strong> solo lo esencial para dar los medicamentos y marcarlos, ideal para quien cuida a Mamá y no maneja mucho la tecnología. <strong>Pro:</strong> acceso completo para editar medicamentos, horarios y recetas — activa este modo en tu propio dispositivo para poder personalizar todo.</p>
+        <div class="settings-row">
+          <button class="btn sm" id="modeSimpleBtn">Sencillo</button>
+          <button class="btn sm" id="modeProBtn">Pro</button>
+        </div>
+      </div>
       <div class="settings-block">
         <h3>Acerca de esta versión</h3>
-        <p><strong>MediClock v1</strong>, personalizada para el cuidado de Mamá, según indicaciones médicas. Los medicamentos y cuidados de esta lista se pueden editar, pausar o eliminar en cualquier momento desde la pestaña «Medicamentos», y puedes agregar los que hagan falta más adelante (nuevos ítems, horarios, recetas y descripciones) sin perder el historial ya registrado.</p>
+        <p><strong>MediClock v1</strong>, personalizada para el cuidado de Mamá, según indicaciones médicas. Los medicamentos y cuidados de esta lista se pueden editar, pausar o eliminar en cualquier momento (activa el «Modo Pro» arriba), y puedes agregar los que hagan falta más adelante (nuevos ítems, horarios, recetas y descripciones) sin perder el historial ya registrado.</p>
       </div>
       <div class="settings-block">
         <h3>Indicaciones generales para el cuidador</h3>
@@ -371,14 +380,6 @@
           </div>
           <div><label>Nota (opcional)</label><textarea id="rf_note" placeholder="Ej: llevar resultado al médico"></textarea></div>
           <div class="inline-actions"><button class="btn sm primary" id="rf_add">+ Agregar recordatorio</button></div>
-        </div>
-      </div>
-      <div class="settings-block">
-        <h3>Modo de la aplicación</h3>
-        <p><strong>Sencillo:</strong> solo lo esencial para dar los medicamentos y marcarlos, ideal para quien cuida a Mamá y no maneja mucho la tecnología. <strong>Pro:</strong> acceso completo para editar medicamentos, horarios y recetas.</p>
-        <div class="settings-row">
-          <button class="btn sm" id="modeSimpleBtn">Sencillo</button>
-          <button class="btn sm" id="modeProBtn">Pro</button>
         </div>
       </div>
       <div class="settings-block">
@@ -408,7 +409,16 @@
           <button class="btn sm" id="exportBtn">⬇ Exportar respaldo</button>
           <button class="btn sm" id="importBtn">⬆ Importar respaldo</button>
         </div>
+        <div class="settings-row">
+          <button class="btn sm" id="copyBackupBtn">📋 Copiar respaldo (si no descarga)</button>
+        </div>
         <input type="file" id="importFile" accept="application/json" style="display:none;">
+        <details class="tmore" style="margin-top:10px;"><summary>Restaurar pegando un respaldo copiado</summary>
+          <div class="inline-form">
+            <textarea id="pasteBackupInput" placeholder="Pega aquí el texto del respaldo"></textarea>
+            <div class="inline-actions"><button class="btn sm primary" id="pasteBackupBtn">Restaurar desde el texto pegado</button></div>
+          </div>
+        </details>
       </div>
 
       <div class="settings-block pro-only">
@@ -782,7 +792,7 @@
     }
     var html = occs.map(function(occ){
       var st = computeStatus(occ, now);
-      var rowClass = (st.kind==="due") ? "due" : (st.kind==="overdue" ? "overdue" : "");
+      var rowClass = (st.kind==="due") ? "due" : (st.kind==="overdue" ? "overdue" : (bucketOf(st.kind)==="hecho" ? "" : "upcoming"));
       var key = slotKey(occ.med.id, occ.date, occ.time);
       var moreBits = [];
       if(occ.med.purpose) moreBits.push(escapeHtml(occ.med.purpose));
@@ -1283,12 +1293,34 @@
   });
 
   document.getElementById("exportBtn").addEventListener("click", function(){
-    var blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url; a.download = "respaldo_cuido_mama_"+todayStr()+".json";
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try{
+      var blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = "respaldo_mediclock_"+todayStr()+".json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+      alert("Se descargó el respaldo. Si no ves el archivo, revisa la carpeta de Descargas de tu navegador — algunos celulares no muestran ningún aviso. Si nunca aparece, usa el botón «Copiar respaldo».");
+    }catch(e){
+      alert("No se pudo descargar directamente. Usa el botón «Copiar respaldo» en su lugar.");
+    }
+  });
+
+  document.getElementById("copyBackupBtn").addEventListener("click", function(){
+    var text = JSON.stringify(state,null,2);
+    function done(ok){ alert(ok ? "Respaldo copiado. Pégalo (mantén presionado y «Pegar») en una nota, correo o chat para guardarlo." : "No se pudo copiar automáticamente. Mantén presionado este botón o revisa los permisos del navegador."); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){done(true);}).catch(function(){done(false);});
+    } else {
+      try{
+        var ta = document.createElement("textarea");
+        ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        var ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        done(ok);
+      }catch(e){ done(false); }
+    }
   });
   document.getElementById("importBtn").addEventListener("click", function(){
     document.getElementById("importFile").click();
@@ -1310,6 +1342,23 @@
     };
     reader.readAsText(file);
     e.target.value = "";
+  });
+
+  document.getElementById("pasteBackupBtn").addEventListener("click", function(){
+    var raw = document.getElementById("pasteBackupInput").value.trim();
+    if(!raw){ alert("Pega primero el texto del respaldo."); return; }
+    try{
+      var data = JSON.parse(raw);
+      if(!data.meds || !data.logs) throw new Error("formato inválido");
+      if(confirm("Esto reemplazará todos los datos actuales con el respaldo pegado. ¿Continuar?")){
+        state = data;
+        if(!state.settings) state.settings = {soundEnabled:true};
+        if(!Array.isArray(state.reminders)) state.reminders = defaultReminders();
+        if(state.uiMode !== "simple" && state.uiMode !== "pro") state.uiMode = "simple";
+        saveState(state); showTab(activeTab);
+        alert("Respaldo restaurado.");
+      }
+    }catch(err){ alert("Ese texto no parece un respaldo válido."); }
   });
 
   document.getElementById("resetMedsBtn").addEventListener("click", function(){
