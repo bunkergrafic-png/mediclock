@@ -854,7 +854,18 @@
       '</div>';
   }
 
-  function renderTimeline(){
+  function isTimelineBusy(){
+    var tl = document.getElementById("timeline");
+    if(!tl) return false;
+    if(tl.querySelector(".give-form-slot .inline-form")) return true;
+    if(tl.querySelector("details[open]")) return true;
+    var active = document.activeElement;
+    if(active && tl.contains(active) && (active.tagName==="INPUT"||active.tagName==="TEXTAREA"||active.tagName==="SELECT")) return true;
+    return false;
+  }
+
+  function renderTimeline(force){
+    if(!force && isTimelineBusy()) return;
     var now = new Date();
     var dateStr = todayStr(now);
     var occs = todaysOccurrences(dateStr);
@@ -930,13 +941,13 @@
     document.getElementById("generalNoteText").textContent = text;
   }
 
-  function renderAhora(){
+  function renderAhora(force){
     document.getElementById("todayLabel").textContent = fmtDateLong(todayStr());
     refreshMuteBtn();
     renderGeneralNote();
     renderReminders();
     renderSummary();
-    renderTimeline();
+    renderTimeline(force);
   }
 
   function openGiveForm(key, mode){
@@ -993,7 +1004,7 @@
       deltaMinutes: deltaMinutes, by: by, note: note
     });
     saveState(state);
-    renderAhora();
+    renderAhora(true);
   }
 
   function confirmSkip(key){
@@ -1006,7 +1017,7 @@
       deltaMinutes: null, by:"", note: noteInput ? noteInput.value.trim() : ""
     });
     saveState(state);
-    renderAhora();
+    renderAhora(true);
   }
 
   // ---------- historial ----------
@@ -1229,7 +1240,7 @@
     });
     document.querySelectorAll("section.view").forEach(function(v){ v.classList.remove("active"); });
     document.getElementById("view-"+tab).classList.add("active");
-    if(tab==="ahora") renderAhora();
+    if(tab==="ahora") renderAhora(true);
     if(tab==="historial") renderHistorial();
     if(tab==="medicamentos") renderMedicamentos();
     if(tab==="ajustes"){
@@ -1255,12 +1266,12 @@
     if(!btn) return;
     var f = btn.getAttribute("data-filter");
     timelineFilter = (timelineFilter === f) ? null : f;
-    renderSummary(); renderTimeline();
+    renderSummary(); renderTimeline(true);
   });
   document.getElementById("filterBar").addEventListener("click", function(e){
     if(e.target.matches("[data-clear-filter]")){
       timelineFilter = null;
-      renderSummary(); renderTimeline();
+      renderSummary(); renderTimeline(true);
     }
   });
 
@@ -1270,14 +1281,14 @@
     else if(t.matches("[data-quick-give]")) quickGive(t.getAttribute("data-quick-give"));
     else if(t.matches("[data-give]")) openGiveForm(t.getAttribute("data-give"), "give");
     else if(t.matches("[data-skip]")) openGiveForm(t.getAttribute("data-skip"), "skip");
-    else if(t.matches("[data-cancel]")) renderTimeline();
+    else if(t.matches("[data-cancel]")) renderTimeline(true);
     else if(t.matches("[data-confirm-give]")) confirmGive(t.getAttribute("data-confirm-give"));
     else if(t.matches("[data-confirm-skip]")) confirmSkip(t.getAttribute("data-confirm-skip"));
     else if(t.matches("[data-edit-log]")){
       var log = state.logs.filter(function(l){return l.id===t.getAttribute("data-edit-log");})[0];
       if(log && confirm("¿Borrar este registro para volver a marcarlo?")){
         state.logs = state.logs.filter(function(l){return l.id!==log.id;});
-        saveState(state); renderAhora();
+        saveState(state); renderAhora(true);
       }
     }
   });
@@ -1303,7 +1314,7 @@
     var t = e.target;
     if(t.matches("[data-reminder-done]")){
       var r = state.reminders.filter(function(x){return x.id===t.getAttribute("data-reminder-done");})[0];
-      if(r){ r.done = true; saveState(state); renderAhora(); }
+      if(r){ r.done = true; saveState(state); renderAhora(true); }
     }
   });
 
