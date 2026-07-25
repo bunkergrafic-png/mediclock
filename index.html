@@ -350,6 +350,47 @@
     .summary .card{padding:10px;}
     .summary .card .n{font-size:22px;}
   }
+
+  /* ---- Hoja imprimible ---- */
+  #printView{ display:none; }
+  #printView{
+    --pv-ink:#1a1a17; --pv-dim:#5b564a; --pv-brand:#1F4741; --pv-accent:#8a5a12;
+    --pv-border:#cfc7b2; --pv-rowalt:#f4f1e9; --pv-boxbg:#f8f1de;
+    font-family: var(--sans); color:var(--pv-ink); background:#fff;
+  }
+  #printView h1{font-family:var(--serif); font-size:22px; color:var(--pv-brand); margin-bottom:2px;}
+  #printView h2{font-family:var(--serif); font-size:14px; margin-bottom:8px;}
+  #printView .pv-meta{font-size:11px; color:var(--pv-dim); margin-bottom:2px;}
+  #printView .pv-note{
+    background:var(--pv-boxbg); border:1px solid var(--pv-accent); border-radius:8px;
+    padding:8px 12px; margin:10px 0; font-size:11px;
+  }
+  #printView .pv-note strong{color:var(--pv-accent); display:block; font-size:9.5px; letter-spacing:.03em; margin-bottom:2px;}
+  #printView .pv-legend{font-size:9.5px; color:var(--pv-dim); margin-bottom:8px;}
+  #printView table{width:100%; border-collapse:collapse; font-size:9.5px; margin-bottom:18px;}
+  #printView th{
+    background:var(--pv-brand); color:#fff; text-align:left; padding:5px 6px; font-size:8.5px;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  #printView td{padding:5px 6px; border:1px solid var(--pv-border); vertical-align:top;}
+  #printView tr:nth-child(even) td{background:var(--pv-rowalt);}
+  #printView .pv-tag{font-size:7.8px; font-weight:700; letter-spacing:.03em;}
+  #printView .pv-tag.med{color:var(--pv-brand);}
+  #printView .pv-tag.cuidado{color:var(--pv-accent);}
+  #printView .pv-ref-item{border-top:1px solid var(--pv-border); padding:8px 0; font-size:10px; break-inside:avoid;}
+  #printView .pv-ref-item .pv-ref-head{display:flex; justify-content:space-between; gap:10px; font-weight:700; font-size:11.5px;}
+  #printView .pv-ref-item .pv-ref-cat{font-size:8.5px; font-weight:700;}
+  #printView .pv-ref-item p{margin:2px 0; color:var(--pv-dim);}
+  #printView .pv-ref-item p strong{color:var(--pv-ink);}
+  #printView .pv-footer{font-size:8.5px; color:var(--pv-dim); text-align:center; margin-top:10px;}
+  #printView tr{break-inside:avoid;}
+
+  @media print{
+    body *{ visibility:hidden; }
+    #printView, #printView *{ visibility:visible; }
+    #printView{ display:block; position:absolute; left:0; top:0; width:100%; }
+    @page{ margin:14mm; }
+  }
 </style>
 
 <div class="app">
@@ -453,8 +494,14 @@
         </div>
       </div>
       <div class="settings-block">
+        <h3>Hoja imprimible (PDF)</h3>
+        <p>Genera una hoja con el horario completo de hoy, en orden de hora, con toda la información de cada medicamento — para tenerla en papel si el cuidador no tiene acceso a la app. Se arma con los medicamentos actuales, así que si editas algo, siempre sale al día.</p>
+        <button class="btn sm primary full" id="printScheduleBtn">🖨️ Ver hoja para imprimir / Guardar como PDF</button>
+        <p style="margin-top:8px; font-size:12.5px;">Se abrirá el diálogo de impresión de tu navegador — elige «Guardar como PDF» en vez de una impresora si solo quieres el archivo.</p>
+      </div>
+      <div class="settings-block">
         <h3>Acerca de esta versión</h3>
-        <p><strong>MediClock <span id="appVersionAbout" class="tabular"></span></strong>, personalizada para el cuidado de Mamá, según indicaciones médicas. Los medicamentos y cuidados de esta lista se pueden editar, pausar o eliminar en cualquier momento (activa el «Modo Pro» arriba), y puedes agregar los que hagan falta más adelante (nuevos ítems, horarios, recetas y descripciones) sin perder el historial ya registrado.</p>
+        <p><strong>MediClock <span id="appVersionAbout" class="tabular"></span></strong>, personalizada para el cuidado de un familiar, según indicaciones médicas. Los medicamentos y cuidados de esta lista se pueden editar, pausar o eliminar en cualquier momento (activa el «Modo Pro» arriba), y puedes agregar los que hagan falta más adelante (nuevos ítems, horarios, recetas y descripciones) sin perder el historial ya registrado.</p>
       </div>
       <div class="settings-block">
         <h3>Indicaciones generales para el cuidador</h3>
@@ -593,6 +640,8 @@
 
   <footer class="credit">MediClock <span id="appVersionFooter" class="tabular"></span> — uso familiar y privado, todo se guarda en este navegador.</footer>
 </div>
+
+<div id="printView"></div>
 
 <dialog id="dialog"><div class="dialog-inner" id="dialogInner"></div></dialog>
 
@@ -1370,6 +1419,66 @@
         '</div>';
     }).join("") || '<div class="empty">Todavía no hay exámenes registrados.</div>';
   }
+
+  // ---------- hoja imprimible ----------
+  function buildPrintScheduleHtml(){
+    var meds = state.meds.filter(function(m){ return m.active; });
+    var occs = [];
+    meds.forEach(function(m, idx){
+      m.times.forEach(function(t){ occs.push({ time:t, med:m, order:idx }); });
+    });
+    occs.sort(function(a,b){ return a.time.localeCompare(b.time) || a.order - b.order; });
+
+    var patientName = (state.patient && state.patient.name) ? state.patient.name : "Mamá";
+    var doctorName = (state.patient && state.patient.doctor) ? state.patient.doctor : "";
+    var metaLine = 'Paciente: <strong>'+escapeHtml(patientName)+'</strong>' + (doctorName ? '  ·  Indicaciones: '+escapeHtml(doctorName) : '');
+
+    var rows = occs.map(function(occ){
+      var m = occ.med;
+      var catLabel = m.category === "medicamento" ? "MED" : "CUIDADO";
+      var catClass = m.category === "medicamento" ? "med" : "cuidado";
+      return '<tr>'+
+        '<td><strong>'+formatTime12(occ.time)+'</strong></td>'+
+        '<td><strong>'+escapeHtml(m.name)+'</strong><br><span class="pv-tag '+catClass+'">'+catLabel+'</span></td>'+
+        '<td>'+escapeHtml(m.dose)+'</td>'+
+        '<td>Hora: ______   Quién: ______________</td>'+
+        '</tr>';
+    }).join("");
+
+    var refs = meds.map(function(m){
+      var catLabel = m.category === "medicamento" ? "MEDICAMENTO" : "CUIDADO";
+      var catClass = m.category === "medicamento" ? "med" : "cuidado";
+      var timesLabel = m.times.map(formatTime12).join(" · ");
+      return '<div class="pv-ref-item">'+
+        '<div class="pv-ref-head"><span>'+escapeHtml(m.name)+'</span><span class="pv-ref-cat pv-tag '+catClass+'">'+catLabel+'</span></div>'+
+        '<p>Horarios: '+timesLabel+'</p>'+
+        (m.purpose ? '<p><strong>Para qué es:</strong> '+escapeHtml(m.purpose)+'</p>' : '')+
+        '<p><strong>Dosis:</strong> '+escapeHtml(m.dose)+'</p>'+
+        (m.notes ? '<p><strong>Notas:</strong> '+escapeHtml(m.notes)+'</p>' : '')+
+        '<p>Margen antes de "atrasado": ±'+m.margin+' minutos</p>'+
+        '</div>';
+    }).join("");
+
+    var printedOn = new Date().toLocaleDateString("es-VE", { day:"numeric", month:"long", year:"numeric" });
+
+    return ''+
+      '<h1>MediClock</h1>'+
+      '<h2>Horario diario de medicamentos y cuidados</h2>'+
+      '<div class="pv-meta">'+metaLine+'</div>'+
+      '<div class="pv-meta">Hoja de respaldo en papel — impresa el '+printedOn+'. Si cambian los medicamentos en la app, imprime una hoja nueva.</div>'+
+      (state.generalNotes ? '<div class="pv-note"><strong>Indicaciones importantes</strong>'+escapeHtml(state.generalNotes)+'</div>' : '')+
+      '<div class="pv-legend">Leyenda: MED = medicamento &nbsp;·&nbsp; CUIDADO = tarea de cuidado (horario más flexible)</div>'+
+      '<table><thead><tr><th>Hora</th><th>Ítem</th><th>Dosis / Indicaciones</th><th>Registro (llenar a mano)</th></tr></thead>'+
+      '<tbody>'+rows+'</tbody></table>'+
+      '<h2>Referencia de medicamentos y cuidados</h2>'+
+      refs+
+      '<div class="pv-footer">MediClock — hoja generada desde la app el '+printedOn+'</div>';
+  }
+
+  document.getElementById("printScheduleBtn").addEventListener("click", function(){
+    document.getElementById("printView").innerHTML = buildPrintScheduleHtml();
+    window.print();
+  });
 
   // ---------- ajustes: recordatorios ----------
   function renderReminderList(){
