@@ -81,7 +81,14 @@
   }
   header.top .row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   header.top h1{font-size:26px;color:var(--brand);}
-  header.top .date{font-size:13px;color:var(--ink-dim);text-transform:capitalize;}
+  header.top .date{font-size:14px;color:var(--ink-dim);text-transform:capitalize;}
+  .today-banner{
+    display:flex; align-items:center; gap:10px;
+    background:var(--brand); color:var(--surface);
+    border-radius:14px; padding:14px 18px; margin-bottom:16px;
+  }
+  .today-banner .tb-label{font-size:12.5px; text-transform:uppercase; letter-spacing:.06em; opacity:.85;}
+  .today-banner .tb-date{font-family:var(--serif); font-size:21px; font-weight:700; text-transform:capitalize; text-wrap:balance;}
   header.top .row-right{display:flex; align-items:center; gap:10px;}
   .hamburger{
     display:none; align-items:center; justify-content:center;
@@ -365,6 +372,10 @@
 
   <main>
     <section class="view active" id="view-ahora">
+      <div class="today-banner">
+        <span class="tb-label">Hoy es</span>
+        <span class="tb-date tabular" id="todayBanner"></span>
+      </div>
       <div class="caregiver-note">
         <strong>Cómo usar esta pantalla:</strong>
         <ol>
@@ -943,6 +954,7 @@
 
   function renderAhora(force){
     document.getElementById("todayLabel").textContent = fmtDateLong(todayStr());
+    document.getElementById("todayBanner").textContent = fmtDateLong(todayStr());
     refreshMuteBtn();
     renderGeneralNote();
     renderReminders();
