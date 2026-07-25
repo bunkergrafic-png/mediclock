@@ -126,6 +126,7 @@
   nav.tabs button.active{background:var(--brand);border-color:var(--brand);color:var(--surface);}
   body.mode-simple .pro-only{display:none !important;}
   body.mode-simple nav.tabs button[data-tab="medicamentos"]{display:none;}
+  body.mode-simple nav.tabs button[data-tab="perfil"]{display:none;}
   nav.tabs button:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
     outline:2px solid var(--accent); outline-offset:2px;
   }
@@ -361,12 +362,14 @@
         <button id="hamburgerBtn" class="hamburger" title="Menú" aria-label="Abrir menú">☰</button>
       </div>
     </div>
-    <div class="patient">Paciente: <strong>Mamá</strong></div>
+    <div class="patient" id="patientHeaderLine"></div>
     <nav class="tabs" id="tabs">
       <button data-tab="ahora" class="active">Ahora</button>
       <button data-tab="historial">Historial</button>
       <button data-tab="medicamentos">Medicamentos</button>
+      <button data-tab="perfil">Perfil</button>
       <button data-tab="ajustes">Ajustes</button>
+      <button data-tab="ayuda">Ayuda</button>
     </nav>
   </header>
 
@@ -401,6 +404,45 @@
       <div id="medList"></div>
     </section>
 
+    <section class="view" id="view-perfil">
+      <div class="settings-block">
+        <h3>Ficha del paciente</h3>
+        <p>Estos datos identifican quién usa esta copia de MediClock — útil si algún día la reutilizas para otra persona.</p>
+        <div class="inline-form">
+          <div class="frow">
+            <div><label>Nombre completo</label><input type="text" id="pf_name"></div>
+            <div><label>Edad</label><input type="text" id="pf_age" placeholder="Ej: 75"></div>
+          </div>
+          <div class="frow">
+            <div><label>Fecha de nacimiento (opcional)</label><input type="date" id="pf_birthdate"></div>
+            <div><label>Tipo de sangre (opcional)</label><input type="text" id="pf_bloodtype" placeholder="Ej: O+"></div>
+          </div>
+          <div><label>Diagnóstico / patología principal</label><textarea id="pf_pathology" placeholder="Ej: hipertensión, Parkinson, etc."></textarea></div>
+          <div><label>Alergias</label><textarea id="pf_allergies" placeholder="Ej: penicilina"></textarea></div>
+          <div class="frow">
+            <div><label>Médico tratante</label><input type="text" id="pf_doctor"></div>
+            <div><label>Teléfono del médico (opcional)</label><input type="text" id="pf_doctorphone"></div>
+          </div>
+          <div><label>Notas generales</label><textarea id="pf_notes" placeholder="Cualquier otra cosa importante"></textarea></div>
+          <div class="inline-actions"><button class="btn sm primary" id="pf_save">Guardar ficha</button></div>
+        </div>
+      </div>
+
+      <div class="settings-block">
+        <h3>Exámenes y evolución</h3>
+        <p>Registro de exámenes, resultados y notas de evolución en el tiempo — queda siempre a la mano para mostrarle al médico.</p>
+        <div id="examList"></div>
+        <div class="inline-form">
+          <div class="frow">
+            <div><label>Fecha</label><input type="date" id="ex_date"></div>
+            <div><label>Tipo de examen / consulta</label><input type="text" id="ex_title" placeholder="Ej: Examen de orina"></div>
+          </div>
+          <div><label>Resultado / notas de evolución</label><textarea id="ex_notes" placeholder="Ej: mejoró la infección, seguir con el tratamiento 5 días más"></textarea></div>
+          <div class="inline-actions"><button class="btn sm primary" id="ex_add">+ Agregar al historial</button></div>
+        </div>
+      </div>
+    </section>
+
     <section class="view" id="view-ajustes">
       <div class="settings-block" style="border-color:var(--brand); border-width:2px;">
         <h3>Modo de la aplicación</h3>
@@ -412,7 +454,7 @@
       </div>
       <div class="settings-block">
         <h3>Acerca de esta versión</h3>
-        <p><strong>MediClock v1</strong>, personalizada para el cuidado de Mamá, según indicaciones médicas. Los medicamentos y cuidados de esta lista se pueden editar, pausar o eliminar en cualquier momento (activa el «Modo Pro» arriba), y puedes agregar los que hagan falta más adelante (nuevos ítems, horarios, recetas y descripciones) sin perder el historial ya registrado.</p>
+        <p><strong>MediClock <span id="appVersionAbout" class="tabular"></span></strong>, personalizada para el cuidado de Mamá, según indicaciones médicas. Los medicamentos y cuidados de esta lista se pueden editar, pausar o eliminar en cualquier momento (activa el «Modo Pro» arriba), y puedes agregar los que hagan falta más adelante (nuevos ítems, horarios, recetas y descripciones) sin perder el historial ya registrado.</p>
       </div>
       <div class="settings-block">
         <h3>Indicaciones generales para el cuidador</h3>
@@ -480,9 +522,76 @@
         <button class="btn sm ghost-danger" id="wipeBtn">Borrar todos los datos</button>
       </div>
     </section>
+
+    <section class="view" id="view-ayuda">
+      <div class="settings-block" style="border-color:var(--brand); border-width:2px;">
+        <h3>¿Qué es MediClock? <span class="chip medicamento tabular" id="appVersionHelp" style="margin-left:6px;"></span></h3>
+        <p>Es el control de medicinas y cuidados diarios. Muestra qué toca ahora, avisa con sonido y vibración, y guarda en el historial todo lo que se dio, se saltó o quedó pendiente. Todo se guarda en este mismo navegador, no en internet.</p>
+      </div>
+
+      <div class="settings-block">
+        <h3>Pestaña «Ahora»</h3>
+        <p>Lo primero que ves es la fecha de hoy y, justo debajo, el <strong>ítem más urgente</strong> en grande — el que toca ahora o está atrasado. Tócalo:</p>
+        <p><strong>✅ Ya se lo di</strong> lo marca como dado (puedes ajustar la hora real o dejar una nota). <strong>✕ Se lo saltó</strong> lo marca como omitido, con espacio para explicar por qué.</p>
+        <p>Debajo aparecen hasta 3 "Después vienen" y, si tocas «Ver todos los horarios de hoy», se despliega la lista completa del día.</p>
+        <p>Arriba de la lista, tres números clicables — <strong>Hecho hoy / Atrasado / Por venir</strong> — filtran la lista para mostrar solo esa categoría. Toca el mismo otra vez para quitar el filtro.</p>
+        <p>Cuando algo suena y molesta, el botón <strong>🔇</strong> arriba a la derecha (o el que aparece dentro de la tarjeta roja) apaga la alarma al instante.</p>
+      </div>
+
+      <div class="settings-block">
+        <h3>Pestaña «Historial»</h3>
+        <p>Todo lo que se ha dado u omitido, día por día, con la hora exacta y si quedó a tiempo, tarde o temprano. Puedes filtrar por fecha y borrar un registro si te equivocaste al marcarlo.</p>
+      </div>
+
+      <div class="settings-block">
+        <h3>Modo Sencillo vs Modo Pro</h3>
+        <p>En <strong>Ajustes → Modo de la aplicación</strong> eliges cómo se ve la app <em>en ese dispositivo</em> (cada celular/computadora lo guarda por separado):</p>
+        <p><strong>Sencillo</strong>: solo Ahora, Historial y Ajustes — ideal para un cuidador que no necesita tocar nada más. <strong>Pro</strong>: agrega las pestañas «Medicamentos» y «Perfil», para quien organiza todo (tú).</p>
+      </div>
+
+      <div class="settings-block">
+        <h3>Pestaña «Medicamentos» (Modo Pro)</h3>
+        <p>Aquí agregas, editas, pausas o eliminas medicamentos y cuidados: nombre, categoría, dosis, horarios, receta/indicaciones y el margen de minutos antes de considerarlo atrasado. Pausar (en vez de eliminar) es útil si algo se suspende temporalmente sin perder la configuración.</p>
+      </div>
+
+      <div class="settings-block">
+        <h3>Pestaña «Perfil» (Modo Pro)</h3>
+        <p><strong>Ficha del paciente</strong>: nombre, edad, diagnóstico, alergias, médico tratante, etc. — útil si algún día usas esta misma app para otra persona.</p>
+        <p><strong>Exámenes y evolución</strong>: un registro con fecha de cada examen o consulta, y notas de resultado/evolución, siempre a la mano para mostrarle al médico.</p>
+      </div>
+
+      <div class="settings-block">
+        <h3>Pestaña «Ajustes»</h3>
+        <p><strong>Indicaciones generales</strong>: el texto que aparece destacado arriba en «Ahora» (ej. restricciones de comida). <strong>Recordatorios</strong>: cosas puntuales como repetir un examen, no diarias. <strong>Notificaciones y sonido</strong>: activar avisos, mantener la pantalla encendida y probar la alarma. <strong>Respaldo de datos</strong>: exportar/importar una copia de todo (medicamentos + historial) por si cambias de dispositivo o quieres una copia de seguridad.</p>
+      </div>
+
+      <div class="settings-block" style="border-color:var(--accent); border-width:2px;">
+        <h3>Consejos importantes</h3>
+        <ol>
+          <li>Deja la app abierta todo el día en un dispositivo conectado a la corriente — las alarmas solo funcionan mientras el navegador está abierto.</li>
+          <li>Abre siempre el enlace directamente en el navegador (no dentro del chat de Claude) para que notificaciones y pantalla activa funcionen bien.</li>
+          <li>En el celular, usa «Añadir a pantalla de inicio» para tenerla como un ícono de app.</li>
+          <li>Exporta un respaldo de vez en cuando — todo vive solo en este navegador, si se borra el caché se pierde.</li>
+        </ol>
+      </div>
+
+      <div class="settings-block">
+        <h3>Novedades recientes</h3>
+        <ul style="margin:0; padding-left:20px; line-height:1.8;">
+          <li>Ficha del paciente y registro de exámenes/evolución (pestaña «Perfil»).</li>
+          <li>Esta pestaña de Ayuda, que se actualiza con cada cambio importante.</li>
+          <li>Corregido: los formularios y "Ver todos" ya no se cerraban solos cada 3 segundos.</li>
+          <li>Cierre automático del día: lo que no se marcó queda registrado como "omitido" al empezar el día siguiente, en vez de desaparecer sin dejar rastro.</li>
+          <li>Banner grande con la fecha de hoy, arriba de todo.</li>
+          <li>Menú hamburguesa y ajuste de tamaño para pantallas de celular.</li>
+          <li>Botón de silenciar alarma siempre visible.</li>
+          <li>Pantalla principal con el ítem más urgente en grande y letras más legibles.</li>
+        </ul>
+      </div>
+    </section>
   </main>
 
-  <footer class="credit">MediClock v1 — uso familiar y privado, todo se guarda en este navegador.</footer>
+  <footer class="credit">MediClock <span id="appVersionFooter" class="tabular"></span> — uso familiar y privado, todo se guarda en este navegador.</footer>
 </div>
 
 <dialog id="dialog"><div class="dialog-inner" id="dialogInner"></div></dialog>
@@ -491,6 +600,7 @@
 (function(){
   "use strict";
 
+  var APP_VERSION = "0.0.2";
   var STORAGE_KEY = "mediclock_v1";
   var MARGIN_DEFAULT = 30;
 
@@ -578,8 +688,17 @@
     ];
   }
 
+  function defaultPatient(){
+    return {
+      name:"Mamá", age:"", birthdate:"", bloodType:"",
+      pathology:"", allergies:"", doctor:"", doctorPhone:"", notes:""
+    };
+  }
+
+  function defaultExams(){ return []; }
+
   function defaultState(){
-    return { meds: defaultMeds(), logs: [], settings: { soundEnabled:true }, generalNotes: DEFAULT_GENERAL_NOTES, reminders: defaultReminders(), uiMode: "simple" };
+    return { meds: defaultMeds(), logs: [], settings: { soundEnabled:true }, generalNotes: DEFAULT_GENERAL_NOTES, reminders: defaultReminders(), uiMode: "simple", lastProcessedDate: todayStr(), patient: defaultPatient(), exams: defaultExams() };
   }
 
   function loadState(){
@@ -592,6 +711,9 @@
       if(typeof parsed.generalNotes !== "string") parsed.generalNotes = DEFAULT_GENERAL_NOTES;
       if(!Array.isArray(parsed.reminders)) parsed.reminders = defaultReminders();
       if(parsed.uiMode !== "simple" && parsed.uiMode !== "pro") parsed.uiMode = "simple";
+      if(typeof parsed.lastProcessedDate !== "string") parsed.lastProcessedDate = todayStr();
+      if(!parsed.patient || typeof parsed.patient !== "object") parsed.patient = defaultPatient();
+      if(!Array.isArray(parsed.exams)) parsed.exams = defaultExams();
       if(Array.isArray(parsed.meds) && !parsed.meds.some(function(m){return m.id==="comida";})){
         parsed.meds.push(defaultMeds().filter(function(m){return m.id==="comida";})[0]);
       }
@@ -602,7 +724,31 @@
   }
   function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
 
+  function closeOutElapsedDays(){
+    var today = todayStr();
+    if(state.lastProcessedDate >= today) return;
+    var d = state.lastProcessedDate;
+    while(d < today){
+      state.meds.forEach(function(m){
+        if(!m.active) return;
+        m.times.forEach(function(t){
+          if(!findLog(m.id, d, t)){
+            state.logs.push({
+              id: uid(), medId: m.id, date: d, time: t,
+              status: "omitido", givenAt: new Date(d+"T23:59:00").toISOString(),
+              deltaMinutes: null, by: "", note: "No se confirmó — cerrado automáticamente al terminar el día."
+            });
+          }
+        });
+      });
+      d = addDays(d, 1);
+    }
+    state.lastProcessedDate = today;
+    saveState(state);
+  }
+
   var state = loadState();
+  closeOutElapsedDays();
   var activeTab = "ahora";
   var histDate = null; // null = all dates
   var timelineFilter = null; // null | "hecho" | "atrasado" | "porvenir"
@@ -1175,6 +1321,56 @@
     document.getElementById("medList").innerHTML = html || '<div class="empty">No hay medicamentos todavía.</div>';
   }
 
+  // ---------- perfil del paciente ----------
+  function updatePatientHeaderLine(){
+    var p = state.patient;
+    var bits = [];
+    if(p.name) bits.push('Paciente: <strong>'+escapeHtml(p.name)+'</strong>');
+    if(p.doctor) bits.push('Médico: '+escapeHtml(p.doctor));
+    document.getElementById("patientHeaderLine").innerHTML = bits.join(' · ');
+  }
+
+  function renderPatientForm(){
+    var p = state.patient;
+    document.getElementById("pf_name").value = p.name || "";
+    document.getElementById("pf_age").value = p.age || "";
+    document.getElementById("pf_birthdate").value = p.birthdate || "";
+    document.getElementById("pf_bloodtype").value = p.bloodType || "";
+    document.getElementById("pf_pathology").value = p.pathology || "";
+    document.getElementById("pf_allergies").value = p.allergies || "";
+    document.getElementById("pf_doctor").value = p.doctor || "";
+    document.getElementById("pf_doctorphone").value = p.doctorPhone || "";
+    document.getElementById("pf_notes").value = p.notes || "";
+  }
+
+  function savePatient(){
+    state.patient = {
+      name: document.getElementById("pf_name").value.trim(),
+      age: document.getElementById("pf_age").value.trim(),
+      birthdate: document.getElementById("pf_birthdate").value,
+      bloodType: document.getElementById("pf_bloodtype").value.trim(),
+      pathology: document.getElementById("pf_pathology").value.trim(),
+      allergies: document.getElementById("pf_allergies").value.trim(),
+      doctor: document.getElementById("pf_doctor").value.trim(),
+      doctorPhone: document.getElementById("pf_doctorphone").value.trim(),
+      notes: document.getElementById("pf_notes").value.trim()
+    };
+    saveState(state);
+    updatePatientHeaderLine();
+    alert("Ficha guardada.");
+  }
+
+  function renderExamList(){
+    var list = state.exams.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+    document.getElementById("examList").innerHTML = list.map(function(e){
+      return '<div class="hist-row">'+
+        '<div class="htime tabular">'+fmtDateLong(e.date)+'</div>'+
+        '<div class="hname">'+escapeHtml(e.title)+(e.notes ? ' — '+escapeHtml(e.notes) : '')+'</div>'+
+        '<button class="hedit" data-del-exam="'+e.id+'">borrar</button>'+
+        '</div>';
+    }).join("") || '<div class="empty">Todavía no hay exámenes registrados.</div>';
+  }
+
   // ---------- ajustes: recordatorios ----------
   function renderReminderList(){
     var list = state.reminders.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
@@ -1215,7 +1411,7 @@
     document.body.classList.toggle("mode-simple", simple);
     document.getElementById("modeSimpleBtn").classList.toggle("primary", simple);
     document.getElementById("modeProBtn").classList.toggle("primary", !simple);
-    if(simple && activeTab==="medicamentos") showTab("ahora");
+    if(simple && (activeTab==="medicamentos" || activeTab==="perfil")) showTab("ahora");
   }
 
   // ---------- ajustes ----------
@@ -1255,6 +1451,7 @@
     if(tab==="ahora") renderAhora(true);
     if(tab==="historial") renderHistorial();
     if(tab==="medicamentos") renderMedicamentos();
+    if(tab==="perfil"){ renderPatientForm(); renderExamList(); }
     if(tab==="ajustes"){
       refreshNotifStatus(); refreshWakeStatus(); refreshSoundBtn();
       document.getElementById("generalNotesInput").value = state.generalNotes || "";
@@ -1331,6 +1528,29 @@
   });
 
   document.getElementById("addMedBtn").addEventListener("click", function(){ openMedDialog(null); });
+
+  document.getElementById("pf_save").addEventListener("click", savePatient);
+
+  document.getElementById("ex_add").addEventListener("click", function(){
+    var date = document.getElementById("ex_date").value;
+    var title = document.getElementById("ex_title").value.trim();
+    var notes = document.getElementById("ex_notes").value.trim();
+    if(!date || !title){ alert("Ponle fecha y tipo de examen."); return; }
+    state.exams.push({ id: uid(), date: date, title: title, notes: notes });
+    saveState(state);
+    document.getElementById("ex_title").value = "";
+    document.getElementById("ex_notes").value = "";
+    renderExamList();
+  });
+
+  document.getElementById("examList").addEventListener("click", function(e){
+    if(e.target.matches("[data-del-exam]")){
+      if(confirm("¿Borrar este registro del historial clínico?")){
+        state.exams = state.exams.filter(function(x){return x.id!==e.target.getAttribute("data-del-exam");});
+        saveState(state); renderExamList();
+      }
+    }
+  });
   document.getElementById("medList").addEventListener("click", function(e){
     var t = e.target;
     if(t.matches("[data-edit-med]")) openMedDialog(t.getAttribute("data-edit-med"));
@@ -1471,9 +1691,14 @@
   });
 
   // ---------- init ----------
+  document.getElementById("appVersionFooter").textContent = "v"+APP_VERSION;
+  document.getElementById("appVersionAbout").textContent = "v"+APP_VERSION;
+  document.getElementById("appVersionHelp").textContent = "v"+APP_VERSION;
+  updatePatientHeaderLine();
   showTab("ahora");
   checkAlarms();
   setInterval(function(){
+    if(state.lastProcessedDate < todayStr()) closeOutElapsedDays();
     checkAlarms();
     if(activeTab==="ahora") renderAhora();
   }, 3000);
