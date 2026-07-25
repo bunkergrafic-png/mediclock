@@ -1,3 +1,4 @@
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
 <title>MediClock</title>
 <style>
   :root{
@@ -82,6 +83,12 @@
   header.top h1{font-size:26px;color:var(--brand);}
   header.top .date{font-size:13px;color:var(--ink-dim);text-transform:capitalize;}
   header.top .row-right{display:flex; align-items:center; gap:10px;}
+  .hamburger{
+    display:none; align-items:center; justify-content:center;
+    width:42px; height:42px; flex:0 0 auto;
+    background:var(--surface-2); border:1px solid var(--border); border-radius:10px;
+    font-size:20px; cursor:pointer;
+  }
   #muteToggleBtn{
     background:var(--surface-2); border:1px solid var(--border); border-radius:999px;
     width:40px; height:40px; font-size:18px; cursor:pointer; flex:0 0 auto;
@@ -92,6 +99,16 @@
   header.top .patient strong{color:var(--ink);}
 
   nav.tabs{display:flex;gap:6px;margin-top:14px;overflow-x:auto;padding-bottom:2px;}
+  @media (max-width:600px){
+    .hamburger{display:flex;}
+    nav.tabs{
+      display:none; position:static; flex-direction:column; gap:6px;
+      background:var(--surface); border:1px solid var(--border); border-radius:14px;
+      padding:8px; margin-top:10px; overflow-x:visible; box-shadow:var(--shadow);
+    }
+    nav.tabs.open{display:flex;}
+    nav.tabs button{ width:100%; text-align:left; font-size:17px; padding:14px 16px; }
+  }
   nav.tabs button{
     flex:0 0 auto;
     background:transparent;border:1px solid var(--border);
@@ -219,8 +236,8 @@
   .tname-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
   .tname{font-weight:700; font-size:17px;}
   .chip{
-    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
-    padding:3px 9px; border-radius:999px; white-space:nowrap;
+    font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+    padding:4px 10px; border-radius:999px; white-space:nowrap;
   }
   .chip.medicamento{background:var(--brand-soft); color:var(--brand);}
   .chip.cuidado{background:var(--accent-soft); color:var(--accent);}
@@ -254,7 +271,7 @@
   button.btn.primary:hover{filter:brightness(1.08);}
   button.btn.ghost-danger{color:var(--danger); border-color:var(--danger-soft);}
   button.btn.ghost-danger:hover{background:var(--danger-soft);}
-  button.btn.sm{padding:7px 11px; font-size:13px; border-radius:8px;}
+  button.btn.sm{padding:8px 12px; font-size:15px; border-radius:8px;}
   button.btn.full{width:100%;}
   button.btn:disabled{opacity:.5;cursor:not-allowed;}
 
@@ -276,10 +293,10 @@
   .card-med.inactive{opacity:.55;}
   .card-med header{display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
   .card-med h3{font-size:17px;}
-  .card-med .purpose{font-size:13px; color:var(--ink-dim); margin-top:2px;}
+  .card-med .purpose{font-size:15px; color:var(--ink-dim); margin-top:2px;}
   .card-med .times-list{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
   .times-list .t{
-    font-family:var(--serif); font-size:13px; background:var(--surface-2);
+    font-family:var(--serif); font-size:15px; background:var(--surface-2);
     border-radius:8px; padding:4px 9px;
   }
   .card-med .meta{font-size:12.5px; color:var(--ink-dim); margin-top:8px;}
@@ -334,6 +351,7 @@
       <div class="row-right">
         <div class="date tabular" id="todayLabel"></div>
         <button id="muteToggleBtn" title="Silenciar alarma">🔊</button>
+        <button id="hamburgerBtn" class="hamburger" title="Menú" aria-label="Abrir menú">☰</button>
       </div>
     </div>
     <div class="patient">Paciente: <strong>Mamá</strong></div>
@@ -1225,7 +1243,11 @@
   // ---------- events ----------
   document.getElementById("tabs").addEventListener("click", function(e){
     var btn = e.target.closest("button[data-tab]");
-    if(btn) showTab(btn.getAttribute("data-tab"));
+    if(btn){ showTab(btn.getAttribute("data-tab")); document.getElementById("tabs").classList.remove("open"); }
+  });
+
+  document.getElementById("hamburgerBtn").addEventListener("click", function(){
+    document.getElementById("tabs").classList.toggle("open");
   });
 
   document.getElementById("summary").addEventListener("click", function(e){
