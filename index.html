@@ -1030,7 +1030,7 @@
       var timeStr = formatTime12(pad(when.getHours())+":"+pad(when.getMinutes()));
       logInfo = '<div class="tlog">'+(l.status==="dado" ? "✅ Dado a las "+timeStr : "⛔ Marcado como omitido")+
         (l.by ? " · por "+escapeHtml(l.by) : "") + (l.note ? " · \""+escapeHtml(l.note)+"\"" : "") +
-        ' <button class="hedit pro-only" data-edit-log="'+l.id+'" style="background:none;border:none;color:var(--ink-dim);cursor:pointer;text-decoration:underline;font-size:12px;padding:0;margin-left:4px;">editar</button></div>';
+        ' <button class="hedit" data-edit-log="'+l.id+'" style="background:none;border:none;color:var(--danger);cursor:pointer;text-decoration:underline;font-weight:600;font-size:12px;padding:0;margin-left:4px;">↩ Deshacer</button></div>';
     } else {
       actions = '<div class="tactions">'+
         '<button class="btn primary" data-quick-give="'+key+'">✅ Ya se lo di</button>'+
@@ -1604,9 +1604,11 @@
     else if(t.matches("[data-confirm-skip]")) confirmSkip(t.getAttribute("data-confirm-skip"));
     else if(t.matches("[data-edit-log]")){
       var log = state.logs.filter(function(l){return l.id===t.getAttribute("data-edit-log");})[0];
-      if(log && confirm("¿Borrar este registro para volver a marcarlo?")){
+      if(log && confirm("¿Deshacer esta marca? El ítem vuelve a quedar pendiente (en rojo si ya pasó la hora).")){
         state.logs = state.logs.filter(function(l){return l.id!==log.id;});
-        saveState(state); renderAhora(true);
+        saveState(state);
+        timelineFilter = null;
+        renderAhora(true);
       }
     }
   });
